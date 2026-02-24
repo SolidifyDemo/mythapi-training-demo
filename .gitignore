@@ -398,3 +398,29 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Next.js Frontend
+src/frontend/.next/
+src/frontend/out/
+src/frontend/build/
+src/frontend/node_modules/
+src/frontend/.env*.local
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Vercel
+.vercel
