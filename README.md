@@ -5,6 +5,28 @@
 
 This repository was created to refresh on my .NET knowledge, better understand Docker and containerized apps, as well as GitHub Actions, and become more familiar with Microsoft's Entity Framework. The domain of the API was chosen more or less at random, as it wasn't deemed important for this project, and I wanted to get away from the old shop example.
 
+## Frontend Development
+
+This repository now includes a Next.js 14+ frontend application setup. To scaffold and run the frontend:
+
+**Quick Start:**
+```bash
+chmod +x scaffold-nextjs.sh
+./scaffold-nextjs.sh
+```
+
+**Documentation:**
+- [Scaffolding Guide](./NEXTJS_SCAFFOLDING_GUIDE.md) - Complete implementation guide
+- [Quick Start](./SCAFFOLD_README.md) - Quick start instructions  
+- [Verification Checklist](./SCAFFOLDING_VERIFICATION.md) - Verify your setup
+- [Execution Status](./EXECUTION_REQUIRED.md) - Current implementation status
+
+The frontend uses:
+- **Next.js 14+** with App Router
+- **TypeScript 5+** for type safety
+- **Tailwind CSS 3+** for styling
+- **ESLint 8+** for code quality
+
 # Walkthrough
 
 # Creating the project
