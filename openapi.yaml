@@ -1,0 +1,387 @@
+openapi: 3.1.0
+info:
+  title: MythAPI
+  summary: A RESTful API providing information about gods and mythologies from various cultures.
+  description: |
+    MythAPI is a .NET 8 Web API built with ASP.NET Core Minimal APIs. It serves data
+    about gods, their aliases, and the mythologies they belong to.
+
+    ## Features
+    - Browse gods and mythologies
+    - Search gods by name with optional alias matching
+    - Batch create or update gods
+  version: 1.0.0
+  contact:
+    name: SolidifyDemo
+    url: https://github.com/SolidifyDemo/mythapi-demo
+
+servers:
+  - url: /
+    description: Local development server
+
+tags:
+  - name: Gods
+    description: Operations related to gods
+  - name: Mythologies
+    description: Operations related to mythologies
+
+paths:
+  /api/v1/gods:
+    get:
+      tags:
+        - Gods
+      summary: Get all gods
+      description: Retrieves a list of all gods, including their aliases.
+      operationId: getAllGods
+      responses:
+        "200":
+          description: A list of all gods.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/God"
+              examples:
+                godsList:
+                  summary: Example list of gods
+                  value:
+                    - id: 1
+                      name: Zeus
+                      description: Zeus is the sky and thunder god in ancient Greek religion.
+                      mythologyId: 1
+                      aliases: []
+    post:
+      tags:
+        - Gods
+      summary: Add or update gods
+      description: |
+        Creates new gods or updates existing ones in a single batch operation.
+        If a god object includes an `id` that already exists, it will be updated;
+        otherwise a new god is created.
+
+        - The request body must contain at least one god.
+        - Batch size must not exceed 100 items.
+        - Each god must have a non-empty `name`.
+      operationId: addOrUpdateGods
+      requestBody:
+        required: true
+        description: An array of god objects to create or update.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/GodInput"
+              minItems: 1
+              maxItems: 100
+            examples:
+              createAndUpdate:
+                summary: Create one god and update another
+                value:
+                  - name: Athena
+                    description: Goddess of wisdom and warfare.
+                    mythologyId: 1
+                  - id: 2
+                    name: Hades
+                    description: Updated description for Hades.
+                    mythologyId: 1
+      responses:
+        "200":
+          description: Array of all gods after the operation.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/God"
+        "400":
+          description: |
+            Bad request. Possible reasons:
+            - Request body is empty or null.
+            - Batch size exceeds 100.
+            - A god has an empty or missing name.
+          content:
+            application/json:
+              schema:
+                type: string
+              examples:
+                emptyBody:
+                  summary: Empty request body
+                  value: Request body must contain at least one god.
+                batchTooLarge:
+                  summary: Batch size exceeded
+                  value: Batch size must not exceed 100 items.
+                missingName:
+                  summary: Missing god name
+                  value: Each god must have a non-empty Name.
+    delete:
+      tags:
+        - Gods
+      summary: Delete all gods
+      description: Removes all gods from the database. Use with caution.
+      operationId: deleteAllGods
+      responses:
+        "204":
+          description: All gods successfully deleted.
+
+  /api/v1/gods/{id}:
+    get:
+      tags:
+        - Gods
+      summary: Get god by ID
+      description: Retrieves a single god by its unique identifier.
+      operationId: getGodById
+      parameters:
+        - $ref: "#/components/parameters/GodId"
+      responses:
+        "200":
+          description: The requested god.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/God"
+              examples:
+                zeus:
+                  summary: Example god
+                  value:
+                    id: 1
+                    name: Zeus
+                    description: Zeus is the sky and thunder god in ancient Greek religion.
+                    mythologyId: 1
+                    aliases: []
+        "400":
+          description: Invalid ID (must be a positive integer).
+          content:
+            application/json:
+              schema:
+                type: string
+              examples:
+                invalidId:
+                  summary: Non-positive ID
+                  value: Id must be a positive integer.
+        "404":
+          description: God not found.
+
+  /api/v1/gods/search/{name}:
+    get:
+      tags:
+        - Gods
+      summary: Search gods by name
+      description: |
+        Searches for gods whose name matches the provided search term.
+        Optionally includes alias matches when `includeAliases` is set to `true`.
+
+        - The name parameter cannot be empty.
+        - The name parameter must not exceed 200 characters.
+      operationId: searchGodsByName
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: The name or partial name to search for.
+          schema:
+            type: string
+            maxLength: 200
+        - name: includeAliases
+          in: query
+          required: false
+          description: When `true`, also searches within god aliases.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Array of gods matching the search criteria.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/God"
+              examples:
+                searchResult:
+                  summary: Search result
+                  value:
+                    - id: 1
+                      name: Zeus
+                      description: Zeus is the sky and thunder god in ancient Greek religion.
+                      mythologyId: 1
+                      aliases: []
+        "400":
+          description: |
+            Bad request. Possible reasons:
+            - Name parameter is empty.
+            - Name parameter exceeds 200 characters.
+          content:
+            application/json:
+              schema:
+                type: string
+              examples:
+                emptyName:
+                  summary: Empty name
+                  value: Name parameter cannot be empty.
+                nameTooLong:
+                  summary: Name exceeds max length
+                  value: Name parameter must not exceed 200 characters.
+
+  /api/v1/mythologies:
+    get:
+      tags:
+        - Mythologies
+      summary: Get all mythologies
+      description: Retrieves a list of all mythologies.
+      operationId: getAllMythologies
+      responses:
+        "200":
+          description: A list of all mythologies.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Mythology"
+              examples:
+                mythologiesList:
+                  summary: Example list of mythologies
+                  value:
+                    - id: 1
+                      name: Greek
+                      gods:
+                        - id: 1
+                          name: Zeus
+                          description: Zeus is the sky and thunder god in ancient Greek religion.
+                          mythologyId: 1
+                          aliases: []
+
+components:
+  parameters:
+    GodId:
+      name: id
+      in: path
+      required: true
+      description: The unique ID of the god.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+
+  schemas:
+    God:
+      type: object
+      description: Represents a god entity with associated metadata.
+      required:
+        - id
+        - name
+        - description
+        - mythologyId
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique identifier.
+          examples:
+            - 1
+        name:
+          type: string
+          description: Name of the god.
+          examples:
+            - Zeus
+        description:
+          type: string
+          description: Description of the god.
+          examples:
+            - Zeus is the sky and thunder god in ancient Greek religion.
+        mythologyId:
+          type: integer
+          format: int32
+          description: ID of the associated mythology.
+          examples:
+            - 1
+        aliases:
+          type: array
+          description: List of alternative names for the god.
+          items:
+            $ref: "#/components/schemas/Alias"
+
+    GodInput:
+      type: object
+      description: Input model for creating or updating a god.
+      required:
+        - name
+        - description
+        - mythologyId
+      properties:
+        id:
+          type: integer
+          format: int32
+          nullable: true
+          description: If provided and the god exists, the god is updated; otherwise a new god is created.
+          examples:
+            - 2
+        name:
+          type: string
+          description: Name of the god.
+          examples:
+            - Athena
+        description:
+          type: string
+          description: Description of the god.
+          examples:
+            - Goddess of wisdom and warfare.
+        mythologyId:
+          type: integer
+          format: int32
+          description: ID of the mythology the god belongs to.
+          examples:
+            - 1
+
+    Alias:
+      type: object
+      description: An alternative name for a god.
+      required:
+        - id
+        - godId
+        - name
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique identifier of the alias.
+          examples:
+            - 1
+        godId:
+          type: integer
+          format: int32
+          description: ID of the god this alias belongs to.
+          examples:
+            - 1
+        name:
+          type: string
+          description: The alternative name.
+          examples:
+            - Jupiter
+
+    Mythology:
+      type: object
+      description: Represents a mythology containing a collection of gods.
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique identifier.
+          examples:
+            - 1
+        name:
+          type: string
+          description: Name of the mythology.
+          examples:
+            - Greek
+        gods:
+          type: array
+          description: Gods belonging to this mythology.
+          items:
+            $ref: "#/components/schemas/God"
