@@ -71,4 +71,34 @@ public class GodsEndpointTests
         // Assert.That(rateLimitedRequests, Is.GreaterThan(0), "Some requests should be rate limited");
         Assert.That(successfulRequests + rateLimitedRequests, Is.EqualTo(numberOfRequests), "All requests should be either successful or rate limited");
     }
+
+    [Test]
+    public async Task GetGodById_NonExistentId_ShouldReturn404()
+    {
+        // Act
+        var response = await _httpClient.GetAsync("/api/v1/gods/99999");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NotFound));
+    }
+
+    [Test]
+    public async Task GetGodById_InvalidId_ShouldReturn400()
+    {
+        // Act
+        var response = await _httpClient.GetAsync("/api/v1/gods/0");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task GetGodById_NegativeId_ShouldReturn400()
+    {
+        // Act
+        var response = await _httpClient.GetAsync("/api/v1/gods/-1");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+    }
 }

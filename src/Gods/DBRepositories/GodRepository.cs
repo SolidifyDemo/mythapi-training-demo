@@ -52,9 +52,9 @@ public class GodRepository : IGodRepository
         return gods;
     }
 
-    public async Task<God> GetGodAsync(GodParameter parameter)
+    public async Task<God?> GetGodAsync(GodParameter parameter)
     {
-        return await _context.Gods.FirstAsync(x => x.Id == parameter.Id);
+        return await _context.Gods.FirstOrDefaultAsync(x => x.Id == parameter.Id);
     }
 
     public Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter)
