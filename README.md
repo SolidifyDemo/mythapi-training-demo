@@ -488,6 +488,79 @@ app.UseSwaggerUI();
 app.Run();
 ```
 
+# Frontend
+
+The project includes a Next.js frontend application for interacting with the MythAPI backend.
+
+## Prerequisites
+
+- **Node.js 18+** (https://nodejs.org/)
+- **npm** (comes with Node.js)
+
+## Setup Instructions
+
+1. **Install Dependencies**
+
+   Navigate to the frontend directory and install the required packages:
+
+   ```bash
+   cd src/frontend
+   npm install
+   ```
+
+2. **Run the Development Server**
+
+   Start the frontend development server:
+
+   ```bash
+   npm run dev
+   ```
+
+   The frontend will be available at **http://localhost:3000**
+
+3. **Backend Connection**
+
+   The frontend expects the backend API to be running at **http://localhost:5280**. 
+   Make sure the backend is running before using the frontend.
+
+## Running Both Services
+
+To run both the backend and frontend simultaneously during development, you have two options:
+
+### Option 1: Two Terminal Sessions
+
+Open two terminal windows:
+
+**Terminal 1 - Backend:**
+```bash
+dotnet run --project src/MythApi.csproj
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd src/frontend
+npm run dev
+```
+
+### Option 2: Using Make (Convenience Script)
+
+If you have `make` installed, you can use the provided Makefile:
+
+```bash
+# Run both backend and frontend
+make dev
+
+# Or run them separately:
+make dev-backend
+make dev-frontend
+```
+
+## Accessing the Applications
+
+- **Frontend:** http://localhost:3000
+- **Backend API:** http://localhost:5280
+- **Swagger Documentation:** http://localhost:5280/swagger
+
 # Future work
 
 - Improve Bicep scripts
