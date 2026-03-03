@@ -398,3 +398,10 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Next.js Frontend (src/frontend)
+src/frontend/node_modules/
+src/frontend/.next/
+src/frontend/out/
+src/frontend/.env*.local
+src/frontend/.vercel
