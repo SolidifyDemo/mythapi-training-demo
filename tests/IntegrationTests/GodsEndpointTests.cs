@@ -71,4 +71,82 @@ public class GodsEndpointTests
         // Assert.That(rateLimitedRequests, Is.GreaterThan(0), "Some requests should be rate limited");
         Assert.That(successfulRequests + rateLimitedRequests, Is.EqualTo(numberOfRequests), "All requests should be either successful or rate limited");
     }
+
+    [Test]
+    public async Task SearchGodsByName_ValidName_ShouldReturnMatchingGods()
+    {
+        // Arrange - the database should have some gods seeded
+        var searchName = "Zeus"; // Common god name that should exist in test data
+
+        // Act
+        var response = await _httpClient.GetAsync($"/api/v1/gods/search/{searchName}");
+        
+        // Assert
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        var gods = await response.Content.ReadFromJsonAsync<List<God>>();
+        Assert.That(gods, Is.Not.Null);
+        // All returned gods should contain the search term in their name
+        Assert.That(gods!.All(g => g.Name.Contains(searchName, StringComparison.OrdinalIgnoreCase)), Is.True);
+    }
+
+    [Test]
+    public async Task SearchGodsByName_WithIncludeAliases_ShouldReturnMatchingGodsAndAliases()
+    {
+        // Arrange
+        var searchName = "o"; // Search for a common letter that should match multiple gods
+
+        // Act
+        var response = await _httpClient.GetAsync($"/api/v1/gods/search/{searchName}?includeAliases=true");
+        
+        // Assert
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        var gods = await response.Content.ReadFromJsonAsync<List<God>>();
+        Assert.That(gods, Is.Not.Null);
+        // Verify that results contain gods with the search term in their name or aliases
+        Assert.That(gods!.Count, Is.GreaterThan(0), "Should return at least one god matching the search term");
+    }
+
+    [Test]
+    public async Task SearchGodsByName_WithSqlInjectionAttempt_ShouldNotExecuteSql()
+    {
+        // Arrange - Get the total count of gods first
+        var allGodsResponse = await _httpClient.GetAsync("/api/v1/gods");
+        var allGods = await allGodsResponse.Content.ReadFromJsonAsync<List<God>>();
+        var totalGodsCount = allGods!.Count;
+        
+        // SQL injection attempt that would break vulnerable code
+        var maliciousInput = "' OR '1'='1"; // Classic SQL injection pattern
+
+        // Act
+        var response = await _httpClient.GetAsync($"/api/v1/gods/search/{Uri.EscapeDataString(maliciousInput)}");
+        
+        // Assert
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        var gods = await response.Content.ReadFromJsonAsync<List<God>>();
+        // If SQL injection worked, all gods would be returned; with proper LINQ, it's treated as a search string
+        Assert.That(gods, Is.Not.Null);
+        // The result should NOT return all gods (which would indicate successful SQL injection)
+        Assert.That(gods!.Count, Is.LessThan(totalGodsCount), 
+            "SQL injection should not return all gods - it should be treated as a literal search string");
+    }
+
+    [Test]
+    public async Task SearchGodsByName_WithDropTableAttempt_ShouldNotExecuteSql()
+    {
+        // Arrange - Attempt to drop table
+        var maliciousInput = "'; DROP TABLE Gods; --";
+
+        // Act
+        var response = await _httpClient.GetAsync($"/api/v1/gods/search/{Uri.EscapeDataString(maliciousInput)}");
+        
+        // Assert
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        // Should not crash or drop the table - just treat as a search string
+        var gods = await response.Content.ReadFromJsonAsync<List<God>>();
+        Assert.That(gods, Is.Not.Null);
+        
+        // Verify database is still intact by getting all gods
+        var allGodsResponse = await _httpClient.GetAsync("/api/v1/gods");
+        Assert.That(allGodsResponse.IsSuccessStatusCode, Is.True);
+    }
 }
