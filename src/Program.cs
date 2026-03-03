@@ -9,6 +9,7 @@ using Azure.Identity;
 using Serilog;
 using System.Runtime.CompilerServices;
 using Microsoft.Data.Sqlite;
+using System.Threading.RateLimiting;
 
 [assembly: InternalsVisibleTo("IntegrationTests")]
 
@@ -90,6 +91,37 @@ try
         .AddScoped<IGodRepository, GodRepository>()
         .AddScoped<IMythologyRepository, MythologyRepository>();
 
+    // Configure rate limiting
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                factory: partition => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 100,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                    QueueLimit = 0
+                }));
+
+        options.OnRejected = async (context, cancellationToken) =>
+        {
+            Log.Warning("Rate limit exceeded for {Path} from {IpAddress}", 
+                context.HttpContext.Request.Path, 
+                context.HttpContext.Connection.RemoteIpAddress);
+            
+            context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+            
+            if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+            {
+                context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString();
+            }
+            
+            await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", cancellationToken);
+        };
+    });
+
     var app = builder.Build();
 
     // Create/migrate database and initialize with default mythologies if needed
@@ -114,6 +146,8 @@ try
     app.RegisterMythologiesEndpoints();
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    app.UseRateLimiter();
 
     
 
