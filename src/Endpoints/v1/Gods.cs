@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using MythApi.Gods.Interfaces;
 using MythApi.Common.Database.Models;
@@ -16,7 +17,18 @@ public static class Gods {
         gods.MapPost("", AddOrUpdateGods);
     }
 
-    public static Task<List<God>> AddOrUpdateGods(List<GodInput> gods, IGodRepository repository) => repository.AddOrUpdateGods(gods);
+    public static async Task<Results<Ok<List<God>>, BadRequest<string>>> AddOrUpdateGods(List<GodInput> gods, IGodRepository repository)
+    {
+        try
+        {
+            var result = await repository.AddOrUpdateGods(gods);
+            return TypedResults.Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return TypedResults.BadRequest(ex.Message);
+        }
+    }
 
     public static Task<IList<God>> GetAlllGods(IGodRepository repository) => repository.GetAllGodsAsync();
 }
