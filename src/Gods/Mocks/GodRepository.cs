@@ -42,11 +42,8 @@ public class GodRepository : IGodRepository
 
     public Task<God?> GetGodAsync(GodParameter parameter)
     {
-        if (parameter.Id < 0 || parameter.Id >= gods.Count)
-        {
-            return Task.FromResult<God?>(null);
-        }
-        return Task.FromResult<God?>(gods[parameter.Id]);
+        var god = gods.FirstOrDefault(g => g.Id == parameter.Id);
+        return Task.FromResult(god);
     }
 
     public Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter)
