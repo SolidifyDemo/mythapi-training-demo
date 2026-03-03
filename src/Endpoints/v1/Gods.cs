@@ -11,7 +11,7 @@ public static class Gods {
         var gods = endpoints.MapGroup("/api/v1/gods");
 
 
-        gods.MapGet("", GetAlllGods);
+        gods.MapGet("", GetAllGods);
         gods.MapGet("{id}", (int id, IGodRepository repository) => repository.GetGodAsync(new GodParameter(id)));
         gods.MapGet("search/{name}", (string name, IGodRepository repository, [FromQuery] bool includeAliases = false) => repository.GetGodByNameAsync(new GodByNameParameter(name, includeAliases)));
         gods.MapPost("", AddOrUpdateGods);
@@ -30,5 +30,5 @@ public static class Gods {
         }
     }
 
-    public static Task<IList<God>> GetAlllGods(IGodRepository repository) => repository.GetAllGodsAsync();
+    public static Task<IList<God>> GetAllGods(IGodRepository repository) => repository.GetAllGodsAsync();
 }

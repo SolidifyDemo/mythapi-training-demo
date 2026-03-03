@@ -71,8 +71,17 @@ public class GodRepository : IGodRepository
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
+            // Load existing god IDs to avoid N+1 query problem
+            var inputGodIds = gods.Where(g => g.Id.HasValue).Select(g => g.Id!.Value).ToList();
+            var existingGodIds = await _context.Gods
+                .Where(x => inputGodIds.Contains(x.Id))
+                .Select(x => x.Id)
+                .ToListAsync();
+            
+            var affectedGodIds = new List<int>();
+
             foreach(var god in gods) {
-                if (god.Id.HasValue && _context.Gods.Any(x => x.Id == god.Id))
+                if (god.Id.HasValue && existingGodIds.Contains(god.Id.Value))
                 {
                     _context.Gods.Where(x => x.Id == god.Id)
                         .ExecuteUpdate(setter => 
@@ -80,6 +89,7 @@ public class GodRepository : IGodRepository
                                 .SetProperty(x => x.Description, god.Description)
                                 .SetProperty(x => x.MythologyId, god.MythologyId)
                             );
+                    affectedGodIds.Add(god.Id.Value);
                 }
                 else
                 {
@@ -90,13 +100,21 @@ public class GodRepository : IGodRepository
                         Description = god.Description
                     };
                     _context.Gods.Add(newGod);
+                    // Note: newGod.Id will be set after SaveChangesAsync
                 }
             }
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
             
-            return await _context.Gods.ToListAsync();
+            // Return only the affected gods for efficiency
+            // For new gods, get them by matching name and mythologyId since we don't have IDs before save
+            var newGodNames = gods.Where(g => !g.Id.HasValue).Select(g => g.Name).ToList();
+            var result = await _context.Gods
+                .Where(g => affectedGodIds.Contains(g.Id) || newGodNames.Contains(g.Name))
+                .ToListAsync();
+            
+            return result;
         }
         catch
         {
