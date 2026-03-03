@@ -109,7 +109,12 @@ public class GodsEndpointTests
     [Test]
     public async Task SearchGodsByName_WithSqlInjectionAttempt_ShouldNotExecuteSql()
     {
-        // Arrange - SQL injection attempt that would break vulnerable code
+        // Arrange - Get the total count of gods first
+        var allGodsResponse = await _httpClient.GetAsync("/api/v1/gods");
+        var allGods = await allGodsResponse.Content.ReadFromJsonAsync<List<God>>();
+        var totalGodsCount = allGods!.Count;
+        
+        // SQL injection attempt that would break vulnerable code
         var maliciousInput = "' OR '1'='1"; // Classic SQL injection pattern
 
         // Act
@@ -118,10 +123,11 @@ public class GodsEndpointTests
         // Assert
         Assert.That(response.IsSuccessStatusCode, Is.True);
         var gods = await response.Content.ReadFromJsonAsync<List<God>>();
-        // The result should be empty or contain only gods with this exact string in their name
-        // It should NOT return all gods (which would happen if SQL injection succeeded)
-        Assert.That(gods, Is.Not.Null);
         // If SQL injection worked, all gods would be returned; with proper LINQ, it's treated as a search string
+        Assert.That(gods, Is.Not.Null);
+        // The result should NOT return all gods (which would indicate successful SQL injection)
+        Assert.That(gods!.Count, Is.LessThan(totalGodsCount), 
+            "SQL injection should not return all gods - it should be treated as a literal search string");
     }
 
     [Test]
