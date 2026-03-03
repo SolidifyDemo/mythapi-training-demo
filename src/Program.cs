@@ -35,6 +35,17 @@ try
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
+    // Configure CORS for frontend
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowFrontend", policy =>
+        {
+            policy.WithOrigins("http://localhost:3000")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+    });
+
     
 
     // Configure database context based on the flags
@@ -112,6 +123,7 @@ try
 
     app.RegisterGodEndpoints();
     app.RegisterMythologiesEndpoints();
+    app.UseCors("AllowFrontend");
     app.UseSwagger();
     app.UseSwaggerUI();
 
