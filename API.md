@@ -6,6 +6,26 @@
 /api/v1/gods
 ```
 
+## Rate Limiting
+
+All API endpoints are protected by rate limiting to ensure fair usage and prevent abuse.
+
+- **Limit:** 100 requests per minute per IP address
+- **Window:** Fixed 1-minute window
+- **Response on Limit Exceeded:**
+  - **Status Code:** `429 Too Many Requests`
+  - **Headers:** `Retry-After` header indicates seconds until the limit resets
+  - **Body:** `"Rate limit exceeded. Please try again later."`
+
+Example rate limit response:
+```
+HTTP/1.1 429 Too Many Requests
+Retry-After: 60
+Content-Type: text/plain
+
+Rate limit exceeded. Please try again later.
+```
+
 ## Endpoints
 
 ### Get All Gods
