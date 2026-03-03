@@ -115,7 +115,7 @@ try
             
             if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
             {
-                context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString();
+                context.HttpContext.Response.Headers.RetryAfter = Math.Ceiling(retryAfter.TotalSeconds).ToString();
             }
             
             await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", cancellationToken);
@@ -142,12 +142,12 @@ try
         initializer.InitializeDatabase();
     }
 
+    app.UseRateLimiter();
+
     app.RegisterGodEndpoints();
     app.RegisterMythologiesEndpoints();
     app.UseSwagger();
     app.UseSwaggerUI();
-
-    app.UseRateLimiter();
 
     
 
