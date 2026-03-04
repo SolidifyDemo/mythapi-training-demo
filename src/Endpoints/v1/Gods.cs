@@ -10,13 +10,21 @@ public static class Gods {
         var gods = endpoints.MapGroup("/api/v1/gods");
 
 
-        gods.MapGet("", GetAlllGods);
+        gods.MapGet("", GetAllGods);
         gods.MapGet("{id}", (int id, IGodRepository repository) => repository.GetGodAsync(new GodParameter(id)));
         gods.MapGet("search/{name}", (string name, IGodRepository repository, [FromQuery] bool includeAliases = false) => repository.GetGodByNameAsync(new GodByNameParameter(name, includeAliases)));
         gods.MapPost("", AddOrUpdateGods);
+        gods.MapDelete("{id}", async (int id, IGodRepository repository) =>
+        {
+            var result = await repository.DeleteGodAsync(id);
+            return result ? Results.NoContent() : Results.NotFound();
+        });
     }
 
     public static Task<List<God>> AddOrUpdateGods(List<GodInput> gods, IGodRepository repository) => repository.AddOrUpdateGods(gods);
 
-    public static Task<IList<God>> GetAlllGods(IGodRepository repository) => repository.GetAllGodsAsync();
+    // Optionally, you may want to add this method to the repository interface and implementation:
+    // Task<bool> DeleteGodAsync(int id);
+
+    public static Task<IList<God>> GetAllGods(IGodRepository repository) => repository.GetAllGodsAsync();
 }
