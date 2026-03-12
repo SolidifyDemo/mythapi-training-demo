@@ -1,7 +1,7 @@
 # copilot-instructions.md
 
 This project contains RESTful APIs built with **.NET (C#)** using **ASP.NET Core**. The following guidelines and best practices should be followed when generating or modifying code.
-Organization name SolidifyDemo and the repository MythAPI
+Organization name SolidifyDemo and the repository mythapi-training-demo
 
 ---
 
