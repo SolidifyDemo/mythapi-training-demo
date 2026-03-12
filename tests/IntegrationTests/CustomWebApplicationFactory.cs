@@ -19,6 +19,17 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
         // Not working. How pass just a flag and not an argument?
         builder.UseSetting("Args:0", "--sqlite-database");
 
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+            // Provide a test JWT key so authentication middleware can start
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Jwt:Key"] = "TestOnlyJwtKeyForIntegrationTestingPurposes1234567890",
+                ["Jwt:Issuer"] = "MythApiIssuer",
+                ["Jwt:Audience"] = "MythApiAudience"
+            });
+        });
+
         builder.ConfigureServices(services =>
         {
             // Add any additional service configuration for testing
