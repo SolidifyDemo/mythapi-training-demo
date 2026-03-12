@@ -19,8 +19,9 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .Enrich.WithProperty("Application", "MythApi")
     .Enrich.WithProperty("Environment", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production")
-    .MinimumLevel.Warning()
+    .MinimumLevel.Information()
     .WriteTo.Console()
+    .WriteTo.File("logs/mythapi-.log", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 builder.Host.UseSerilog();
@@ -65,7 +66,7 @@ try
         // Add a singleton service for database seeding
         builder.Services.AddSingleton<DatabaseInitializer>();
 
-        Log.Information($"Using SQLite database at: {sqlitePath}");
+        Log.Information("Using SQLite database at: {SqlitePath}", sqlitePath);
     }
     else
     {
