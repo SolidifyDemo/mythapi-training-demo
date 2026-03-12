@@ -64,4 +64,10 @@ public class GodRepository : IGodRepository
 
         return Task.FromResult(result);
     }
+
+    public async Task DeleteAllGodsAsync()
+    {
+        _context.Gods.RemoveRange(_context.Gods);
+        await _context.SaveChangesAsync();
+    }
 }
