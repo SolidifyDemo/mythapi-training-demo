@@ -5,7 +5,7 @@ description: 'Create, update, and manage GitHub issues using MCP tools. Use this
 
 # GitHub Issues
 
-Manage GitHub issues using the `@modelcontextprotocol/server-github` MCP server.
+Manage GitHub issues using the `github` MCP server.
 
 ## Available MCP Tools
 
