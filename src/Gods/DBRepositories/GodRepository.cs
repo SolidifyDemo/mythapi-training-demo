@@ -57,11 +57,34 @@ public class GodRepository : IGodRepository
         return await _context.Gods.FirstAsync(x => x.Id == parameter.Id);
     }
 
-    public Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter)
+    public async Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter)
     {
-        var query = parameter.IncludeAliases ? $"SELECT * FROM God WHERE Name LIKE '%{parameter.Name}%' or Id in (SELECT GodId FROM Alias WHERE Name LIKE '%{parameter.Name}%')" : $"SELECT * FROM God WHERE Name LIKE '%{parameter.Name}%'";
-        var result = _context.Gods.FromSqlRaw(query).ToList();
+        var searchPattern = $"%{parameter.Name}%";
 
-        return Task.FromResult(result);
+        if (parameter.IncludeAliases)
+        {
+            return await _context.Gods
+                .Include(g => g.Aliases)
+                .Where(g => EF.Functions.Like(g.Name, searchPattern)
+                    || g.Aliases.Any(a => EF.Functions.Like(a.Name, searchPattern)))
+                .ToListAsync();
+        }
+
+        return await _context.Gods
+            .Where(g => EF.Functions.Like(g.Name, searchPattern))
+            .ToListAsync();
+    }
+
+    public async Task DeleteAllGodsAsync()
+    {
+        await _context.Gods.ExecuteDeleteAsync();
+    }
+
+    public async Task DeleteGodByIdAsync(GodParameter parameter)
+    {
+        var god = await _context.Gods.FirstOrDefaultAsync(x => x.Id == parameter.Id)
+            ?? throw new InvalidOperationException($"God with id {parameter.Id} not found.");
+        _context.Gods.Remove(god);
+        await _context.SaveChangesAsync();
     }
 }
