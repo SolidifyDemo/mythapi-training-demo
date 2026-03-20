@@ -75,6 +75,19 @@ namespace UnitTests
         }
 
         [Test]
+        public async Task SearchGodsByName_SqlInjectionAttempt_ShouldPassNameToRepository()
+        {
+            // Ensures injection strings are passed safely to the repository (not executed as raw SQL)
+            var injectionPayload = "'; DROP TABLE God; --";
+            _repository.GetGodByNameAsync(Arg.Any<GodByNameParameter>()).Returns(new List<God>());
+
+            var result = await Gods.SearchGodsByName(injectionPayload, _repository);
+
+            Assert.That(result, Is.InstanceOf<Ok<List<God>>>());
+            await _repository.Received(1).GetGodByNameAsync(Arg.Is<GodByNameParameter>(p => p.Name == injectionPayload));
+        }
+
+        [Test]
         public async Task SearchGodsByName_ValidName_ShouldReturnOk()
         {
             var gods = new List<God>
