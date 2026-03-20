@@ -59,9 +59,24 @@ public class GodRepository : IGodRepository
 
     public Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter)
     {
-        var query = parameter.IncludeAliases ? $"SELECT * FROM God WHERE Name LIKE '%{parameter.Name}%' or Id in (SELECT GodId FROM Alias WHERE Name LIKE '%{parameter.Name}%')" : $"SELECT * FROM God WHERE Name LIKE '%{parameter.Name}%'";
-        var result = _context.Gods.FromSqlRaw(query).ToList();
+        var query = _context.Gods.Where(x => x.Name.Contains(parameter.Name));
+        if (parameter.IncludeAliases)
+        {
+            query = query.Union(_context.Gods.Where(x => x.Aliases.Any(a => a.Name.Contains(parameter.Name))));
+        }
+        return query.Distinct().ToListAsync();
+    }
 
-        return Task.FromResult(result);
+    public async Task DeleteAllGodsAsync()
+    {
+        await _context.Gods.ExecuteDeleteAsync();
+    }
+
+    public async Task DeleteGodByIdAsync(GodParameter parameter)
+    {
+        var god = await _context.Gods.FirstOrDefaultAsync(x => x.Id == parameter.Id)
+            ?? throw new InvalidOperationException($"God with id {parameter.Id} not found.");
+        _context.Gods.Remove(god);
+        await _context.SaveChangesAsync();
     }
 }
