@@ -116,6 +116,7 @@ public class GodRepository : IGodRepository
                     .ToListAsync();
             }
 
+            _logger.LogInformation("Found {GodCount} gods matching name {Name}", result.Count, parameter.Name);
             return result;
         }
         catch (Exception ex)
