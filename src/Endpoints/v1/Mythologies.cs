@@ -24,6 +24,7 @@ public static class Mythologies
 
         mythologies.MapGet("", GetAllMythologies);
         mythologies.MapGet("{id}", GetMythologyById);
+        mythologies.MapGet("search/by-god", GetMythologyByGodName);
     }
 
     /// <summary>
@@ -59,6 +60,30 @@ public static class Mythologies
     public static async Task<IResult> GetMythologyById(int id, IMythologyRepository repository)
     {
         var mythology = await repository.GetMythologyByIdAsync(id);
+        return mythology is null ? TypedResults.NotFound() : TypedResults.Ok(mythology);
+    }
+
+    /// <summary>
+    /// Retrieves a mythology by the name of one of its associated gods.
+    /// </summary>
+    /// <remarks>
+    /// <b>HTTP GET</b> /api/v1/mythologies/search/by-god
+    ///
+    /// Searches for a god with the specified name (case-insensitive) and returns the mythology to which that god belongs.
+    /// Returns the complete mythology object including all associated gods.
+    /// Returns <b>404 Not Found</b> when no god with the given name exists.
+    /// </remarks>
+    /// <param name="name">The name of the god to search for (case-insensitive).</param>
+    /// <param name="repository">The repository instance used to query mythology data from the database.</param>
+    /// <returns>
+    /// <see cref="Ok{Mythology}"/> (200) with the matched <see cref="Mythology"/> object and all its associated gods, or
+    /// <see cref="NotFound"/> (404) when no god with the specified name is found.
+    /// </returns>
+    /// <response code="200">Returns the mythology containing the god with the specified name</response>
+    /// <response code="404">No god was found with the given name</response>
+    public static async Task<IResult> GetMythologyByGodName(string name, IMythologyRepository repository)
+    {
+        var mythology = await repository.GetMythologyByGodNameAsync(name);
         return mythology is null ? TypedResults.NotFound() : TypedResults.Ok(mythology);
     }
 }

@@ -133,5 +133,82 @@ namespace UnitTests
             // Act & Assert
             Assert.ThrowsAsync<Exception>(() => Mythologies.GetMythologyById(1, _mockRepository));
         }
+
+        // --- GetMythologyByGodName ---
+
+        [Test]
+        public async Task GetMythologyByGodName_WhenGodExists_ShouldReturnOkWithMythology()
+        {
+            // Arrange
+            var mythology = new Mythology 
+            { 
+                Id = 1, 
+                Name = "Greek",
+                Gods = new List<God> { new God { Id = 1, Name = "Zeus", MythologyId = 1 } }
+            };
+            _mockRepository.GetMythologyByGodNameAsync("Zeus").Returns(mythology);
+
+            // Act
+            var result = await Mythologies.GetMythologyByGodName("Zeus", _mockRepository);
+
+            // Assert
+            Assert.That(result, Is.InstanceOf<Ok<Mythology>>());
+        }
+
+        [Test]
+        public async Task GetMythologyByGodName_WhenGodExists_ShouldReturnCorrectMythologyName()
+        {
+            // Arrange
+            var mythology = new Mythology 
+            { 
+                Id = 1, 
+                Name = "Greek",
+                Gods = new List<God> { new God { Id = 1, Name = "Zeus", MythologyId = 1 } }
+            };
+            _mockRepository.GetMythologyByGodNameAsync("Zeus").Returns(mythology);
+
+            // Act
+            var result = await Mythologies.GetMythologyByGodName("Zeus", _mockRepository) as Ok<Mythology>;
+
+            // Assert
+            Assert.That(result!.Value!.Name, Is.EqualTo("Greek"));
+        }
+
+        [Test]
+        public async Task GetMythologyByGodName_WhenGodDoesNotExist_ShouldReturnNotFound()
+        {
+            // Arrange
+            _mockRepository.GetMythologyByGodNameAsync("NonExistentGod").Returns((Mythology?)null);
+
+            // Act
+            var result = await Mythologies.GetMythologyByGodName("NonExistentGod", _mockRepository);
+
+            // Assert
+            Assert.That(result, Is.InstanceOf<NotFound>());
+        }
+
+        [Test]
+        public async Task GetMythologyByGodName_WhenCalled_ShouldCallRepositoryWithCorrectName()
+        {
+            // Arrange
+            var mythology = new Mythology { Id = 1, Name = "Greek" };
+            _mockRepository.GetMythologyByGodNameAsync("Athena").Returns(mythology);
+
+            // Act
+            await Mythologies.GetMythologyByGodName("Athena", _mockRepository);
+
+            // Assert
+            await _mockRepository.Received(1).GetMythologyByGodNameAsync("Athena");
+        }
+
+        [Test]
+        public void GetMythologyByGodName_WhenRepositoryThrows_ShouldPropagateException()
+        {
+            // Arrange
+            _mockRepository.GetMythologyByGodNameAsync(Arg.Any<string>()).ThrowsAsync(new Exception("DB error"));
+
+            // Act & Assert
+            Assert.ThrowsAsync<Exception>(() => Mythologies.GetMythologyByGodName("Zeus", _mockRepository));
+        }
     }
 }

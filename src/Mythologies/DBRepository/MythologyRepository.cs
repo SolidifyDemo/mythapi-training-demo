@@ -24,4 +24,17 @@ public class MythologyRepository : IMythologyRepository
     {
         return await _context.Mythologies.FirstOrDefaultAsync(m => m.Id == id);
     }
+
+    public async Task<Mythology?> GetMythologyByGodNameAsync(string godName)
+    {
+        var god = await _context.Gods
+            .FirstOrDefaultAsync(g => g.Name.ToLower() == godName.ToLower());
+        
+        if (god is null)
+            return null;
+
+        return await _context.Mythologies
+            .Include(m => m.Gods)
+            .FirstOrDefaultAsync(m => m.Id == god.MythologyId);
+    }
 }
