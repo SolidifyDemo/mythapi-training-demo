@@ -160,3 +160,128 @@ Creates new gods or updates existing ones. If a god object includes an `id` that
 | `name`        | `string`| Name of the god                                         |
 | `description` | `string`| Description of the god                                  |
 | `mythologyId` | `int`   | ID of the associated mythology                           |
+
+---
+
+## Mythologies API Endpoints
+
+### Base URL
+
+```
+/api/v1/mythologies
+```
+
+### Get All Mythologies
+
+Retrieves a list of all mythologies.
+
+- **URL:** `/api/v1/mythologies`
+- **Method:** `GET`
+- **Parameters:** None
+
+#### Response
+
+- **Status:** `200 OK`
+- **Body:** Array of `Mythology` objects
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Greek",
+    "gods": []
+  }
+]
+```
+
+---
+
+### Get Mythology by ID
+
+Retrieves a single mythology by its unique identifier.
+
+- **URL:** `/api/v1/mythologies/{id}`
+- **Method:** `GET`
+- **Path Parameters:**
+
+| Parameter | Type  | Required | Description                    |
+|-----------|-------|----------|--------------------------------|
+| `id`      | `int` | Yes      | The unique ID of the mythology |
+
+#### Response
+
+- **Status:** `200 OK`
+- **Body:** A single `Mythology` object
+
+```json
+{
+  "id": 1,
+  "name": "Greek",
+  "gods": []
+}
+```
+
+#### Error Responses
+
+- **Status:** `404 Not Found`
+  - Returned when no mythology with the given ID exists.
+
+---
+
+### Get Mythology by God Name
+
+Retrieves a mythology by searching for one of its associated gods by name. The search is case-insensitive.
+
+- **URL:** `/api/v1/mythologies/search/by-god`
+- **Method:** `GET`
+- **Query Parameters:**
+
+| Parameter | Type     | Required | Description                          |
+|-----------|----------|----------|--------------------------------------|
+| `name`    | `string` | Yes      | The name of the god to search for (case-insensitive) |
+
+#### Response
+
+- **Status:** `200 OK`
+- **Body:** A single `Mythology` object with all its associated gods
+
+```json
+{
+  "id": 1,
+  "name": "Greek",
+  "gods": [
+    {
+      "id": 1,
+      "name": "Zeus",
+      "description": "God of the sky",
+      "mythologyId": 1,
+      "aliases": []
+    }
+  ]
+}
+```
+
+#### Error Responses
+
+- **Status:** `404 Not Found`
+  - Returned when no god with the given name exists in the database.
+
+---
+
+## Models
+
+### Mythology
+
+| Field | Type       | Description                    |
+|-------|------------|--------------------------------|
+| `id`  | `int`      | Unique identifier              |
+| `name` | `string`   | Name of the mythology          |
+| `gods` | `God[]`    | List of gods in this mythology |
+
+### Alias
+
+| Field    | Type   | Description                  |
+|----------|--------|------------------------------|
+| `id`     | `int`  | Unique identifier            |
+| `name`   | `string` | Alternative name for a god |
+| `godId`  | `int`  | ID of the associated god     |
