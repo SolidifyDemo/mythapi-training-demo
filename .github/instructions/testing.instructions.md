@@ -32,7 +32,7 @@ Follow these conventions when generating or modifying tests in this project.
 
 ### Structure
 
-Follow Arrange-Act-Assert (AAA) with explicit comments:
+YOU MArrange-Act-Assert (AUST FOLLOW AA) with explicit comments:
 
 ```csharp
 [Test]

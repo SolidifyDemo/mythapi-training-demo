@@ -68,14 +68,15 @@ public static class Gods {
     /// <remarks>
     /// <b>HTTP DELETE</b> /api/v1/gods
     /// 
-    /// Removes every god entry from the database. This operation is irreversible and will delete all gods across all mythologies.
+    /// Removes all god records from the database. This operation is irreversible and will delete all gods across all mythologies.
     /// </remarks>
     /// <param name="repository">The repository instance used to perform the deletion of all god records from the database. Must not be null.</param>
-    /// <returns>
-    /// <see cref="IResult"/> indicating the outcome of the operation. Returns <b>204 No Content</b> on success.
-    /// </returns>
+    /// <returns>A <see cref="IResult"/> indicating the outcome of the operation. Returns <b>204 No Content</b> on success.</returns>
     /// <response code="204">All gods were successfully deleted. No content is returned.</response>
-    /// <response code="500">If an internal server error occurs during deletion.</response>
+    /// <response code="500">An internal server error occurred while deleting gods.</response>
+    /// <remarks>
+    /// <b>Swagger/OpenAPI:</b> This endpoint is documented and will appear in the generated API documentation.
+    /// </remarks>
     public static async Task<IResult> DeleteAllGods(IGodRepository repository)
     {
         await repository.DeleteAllGodsAsync();
