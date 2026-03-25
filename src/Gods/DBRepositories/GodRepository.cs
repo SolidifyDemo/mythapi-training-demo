@@ -52,22 +52,28 @@ public class GodRepository : IGodRepository
         return gods;
     }
 
-    public async Task<God> GetGodAsync(GodParameter parameter)
+    public async Task<God?> GetGodAsync(GodParameter parameter)
     {
-        return await _context.Gods.FirstAsync(x => x.Id == parameter.Id);
+        return await _context.Gods.FirstOrDefaultAsync(x => x.Id == parameter.Id);
     }
 
-    public Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter)
+    public async Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter)
     {
-        var query = parameter.IncludeAliases ? $"SELECT * FROM God WHERE Name LIKE '%{parameter.Name}%' or Id in (SELECT GodId FROM Alias WHERE Name LIKE '%{parameter.Name}%')" : $"SELECT * FROM God WHERE Name LIKE '%{parameter.Name}%'";
-        var result = _context.Gods.FromSqlRaw(query).ToList();
-
-        return Task.FromResult(result);
+        var query = _context.Gods.Where(g => EF.Functions.Like(g.Name, $"%{parameter.Name}%"));
+        if (parameter.IncludeAliases)
+        {
+            var aliasQuery = _context.Gods
+                .Where(g => g.Aliases.Any(a => EF.Functions.Like(a.Name, $"%{parameter.Name}%")));
+            query = query.Union(aliasQuery);
+        }
+        return await query.ToListAsync();
     }
 
-    public async Task DeleteAllGodsAsync()
+    public async Task DeleteGodByIdAsync(GodParameter parameter)
     {
-        _context.Gods.RemoveRange(_context.Gods);
+        var god = await _context.Gods.FirstOrDefaultAsync(x => x.Id == parameter.Id)
+            ?? throw new InvalidOperationException($"God with ID {parameter.Id} not found.");
+        _context.Gods.Remove(god);
         await _context.SaveChangesAsync();
     }
 }

@@ -40,19 +40,27 @@ public class GodRepository : IGodRepository
         return Task.FromResult(gods as IList<God>);
     }
 
-    public Task<God> GetGodAsync(GodParameter parameter)
+    public Task<God?> GetGodAsync(GodParameter parameter)
     {
-        return Task.FromResult(gods[parameter.Id]);
+        return Task.FromResult(gods.FirstOrDefault(g => g.Id == parameter.Id));
     }
 
     public Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter)
     {
-        return Task.FromResult(gods.Where(god => god.Name.Contains(parameter.Name)).ToList());
+        var result = gods.Where(g => g.Name.Contains(parameter.Name, StringComparison.OrdinalIgnoreCase));
+        if (parameter.IncludeAliases)
+        {
+            result = result.Union(gods.Where(g =>
+                g.Aliases.Any(a => a.Name.Contains(parameter.Name, StringComparison.OrdinalIgnoreCase))));
+        }
+        return Task.FromResult(result.Distinct().ToList());
     }
 
-    public Task DeleteAllGodsAsync()
+    public Task DeleteGodByIdAsync(GodParameter parameter)
     {
-        gods.Clear();
+        var god = gods.FirstOrDefault(g => g.Id == parameter.Id)
+            ?? throw new InvalidOperationException($"God with ID {parameter.Id} not found.");
+        gods.Remove(god);
         return Task.CompletedTask;
     }
 }
