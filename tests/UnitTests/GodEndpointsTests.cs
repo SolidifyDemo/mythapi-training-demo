@@ -89,6 +89,42 @@ namespace UnitTests
         }
 
         [Test]
+        public async Task SearchGodsByName_SqlInjectionWithSingleQuote_ShouldPassNameAsDataToRepository()
+        {
+            _repository.GetGodByNameAsync(Arg.Any<GodByNameParameter>()).Returns(new List<God>());
+
+            var result = await Gods.SearchGodsByName("' OR 1=1 --", _repository);
+
+            Assert.That(result, Is.InstanceOf<Ok<List<God>>>());
+            await _repository.Received(1).GetGodByNameAsync(
+                Arg.Is<GodByNameParameter>(p => p.Name == "' OR 1=1 --"));
+        }
+
+        [Test]
+        public async Task SearchGodsByName_SqlInjectionWithSemicolon_ShouldPassNameAsDataToRepository()
+        {
+            _repository.GetGodByNameAsync(Arg.Any<GodByNameParameter>()).Returns(new List<God>());
+
+            var result = await Gods.SearchGodsByName("'; DROP TABLE God; --", _repository);
+
+            Assert.That(result, Is.InstanceOf<Ok<List<God>>>());
+            await _repository.Received(1).GetGodByNameAsync(
+                Arg.Is<GodByNameParameter>(p => p.Name == "'; DROP TABLE God; --"));
+        }
+
+        [Test]
+        public async Task SearchGodsByName_SqlInjectionWithDoubleHyphen_ShouldPassNameAsDataToRepository()
+        {
+            _repository.GetGodByNameAsync(Arg.Any<GodByNameParameter>()).Returns(new List<God>());
+
+            var result = await Gods.SearchGodsByName("Zeus--", _repository);
+
+            Assert.That(result, Is.InstanceOf<Ok<List<God>>>());
+            await _repository.Received(1).GetGodByNameAsync(
+                Arg.Is<GodByNameParameter>(p => p.Name == "Zeus--"));
+        }
+
+        [Test]
         public async Task GetGodById_InvalidId_ShouldReturnBadRequest()
         {
             var result = await Gods.GetGodById(0, _repository);
