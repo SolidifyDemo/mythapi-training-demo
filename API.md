@@ -140,6 +140,41 @@ Creates new gods or updates existing ones. If a god object includes an `id` that
 
 ---
 
+## Mythologies API
+
+### Get Mythology by God ID
+
+Returns the mythology that a given god belongs to.
+
+- **URL:** `/api/v1/mythologies/god/{godId}`
+- **Method:** `GET`
+- **Path Parameters:**
+
+| Parameter | Type  | Required | Description                   |
+|-----------|-------|----------|-------------------------------|
+| `godId`   | `int` | Yes      | The unique ID of the god      |
+
+#### Response
+
+- **Status:** `200 OK` — Returns the `Mythology` object the god belongs to
+- **Status:** `404 Not Found` — Returned when no god with the given `godId` exists
+
+**Example Request:**
+```
+GET /api/v1/mythologies/god/1
+```
+
+**Example Response (200 OK):**
+```json
+{
+  "id": 1,
+  "name": "Norse",
+  "gods": []
+}
+```
+
+---
+
 ## Models
 
 ### God

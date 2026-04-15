@@ -64,4 +64,18 @@ public class GodRepository : IGodRepository
 
         return Task.FromResult(result);
     }
+
+    public async Task DeleteAllGodsAsync()
+    {
+        await _context.Gods.ExecuteDeleteAsync();
+    }
+
+    public async Task DeleteGodByIdAsync(GodParameter parameter)
+    {
+        var god = await _context.Gods.FirstOrDefaultAsync(x => x.Id == parameter.Id);
+        if (god is null)
+            throw new InvalidOperationException($"God with id {parameter.Id} not found.");
+        _context.Gods.Remove(god);
+        await _context.SaveChangesAsync();
+    }
 }
