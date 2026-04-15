@@ -53,8 +53,8 @@ namespace UnitTests
 
             var result = await Gods.AddOrUpdateGods(godInputs, _repository);
 
-            Assert.That(result, Is.InstanceOf<Ok<List<God>>>());
-            var okResult = (Ok<List<God>>)result;
+            Assert.That(result.Result, Is.InstanceOf<Ok<List<God>>>());
+            var okResult = (Ok<List<God>>)result.Result;
             Assert.That(okResult.Value!.Count, Is.EqualTo(1));
         }
 
@@ -63,7 +63,7 @@ namespace UnitTests
         {
             var result = await Gods.AddOrUpdateGods(new List<GodInput>(), _repository);
 
-            Assert.That(result, Is.InstanceOf<BadRequest<string>>());
+            Assert.That(result.Result, Is.InstanceOf<BadRequest<string>>());
         }
 
         [Test]
@@ -71,7 +71,7 @@ namespace UnitTests
         {
             var result = await Gods.SearchGodsByName(" ", _repository);
 
-            Assert.That(result, Is.InstanceOf<BadRequest<string>>());
+            Assert.That(result.Result, Is.InstanceOf<BadRequest<string>>());
         }
 
         [Test]
@@ -85,7 +85,7 @@ namespace UnitTests
 
             var result = await Gods.SearchGodsByName("Zeus", _repository);
 
-            Assert.That(result, Is.InstanceOf<Ok<List<God>>>());
+            Assert.That(result.Result, Is.InstanceOf<Ok<List<God>>>());
         }
 
         [Test]
@@ -93,7 +93,7 @@ namespace UnitTests
         {
             var result = await Gods.GetGodById(0, _repository);
 
-            Assert.That(result, Is.InstanceOf<BadRequest<string>>());
+            Assert.That(result.Result, Is.InstanceOf<BadRequest<string>>());
         }
 
         [Test]
@@ -104,7 +104,7 @@ namespace UnitTests
 
             var result = await Gods.GetGodById(999, _repository);
 
-            Assert.That(result, Is.InstanceOf<NotFound>());
+            Assert.That(result.Result, Is.InstanceOf<NotFound>());
         }
 
         [Test]
@@ -127,7 +127,7 @@ namespace UnitTests
             var result = await Gods.DeleteGodById(0, _repository);
 
             // Assert
-            Assert.That(result, Is.InstanceOf<BadRequest<string>>());
+            Assert.That(result.Result, Is.InstanceOf<BadRequest<string>>());
         }
 
         [Test]
@@ -141,7 +141,7 @@ namespace UnitTests
             var result = await Gods.DeleteGodById(999, _repository);
 
             // Assert
-            Assert.That(result, Is.InstanceOf<NotFound>());
+            Assert.That(result.Result, Is.InstanceOf<NotFound>());
         }
 
         [Test]
@@ -154,7 +154,7 @@ namespace UnitTests
             var result = await Gods.DeleteGodById(1, _repository);
 
             // Assert
-            Assert.That(result, Is.InstanceOf<NoContent>());
+            Assert.That(result.Result, Is.InstanceOf<NoContent>());
             await _repository.Received(1).DeleteGodByIdAsync(Arg.Is<GodParameter>(p => p.Id == 1));
         }
     }

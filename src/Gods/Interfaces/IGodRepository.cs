@@ -11,4 +11,8 @@ public interface IGodRepository{
     public Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter);
 
     public Task<List<God>> AddOrUpdateGods(List<GodInput> gods);
+
+    public Task DeleteAllGodsAsync();
+
+    public Task DeleteGodByIdAsync(GodParameter parameter);
 }
