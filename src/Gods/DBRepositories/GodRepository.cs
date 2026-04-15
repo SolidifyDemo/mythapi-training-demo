@@ -72,7 +72,9 @@ public class GodRepository : IGodRepository
 
     public async Task DeleteGodByIdAsync(GodParameter parameter)
     {
-        var god = await _context.Gods.FirstAsync(x => x.Id == parameter.Id);
+        var god = await _context.Gods.FirstOrDefaultAsync(x => x.Id == parameter.Id);
+        if (god is null)
+            throw new InvalidOperationException($"God with id {parameter.Id} not found.");
         _context.Gods.Remove(god);
         await _context.SaveChangesAsync();
     }

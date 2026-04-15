@@ -22,9 +22,11 @@ public class MythologyRepository : IMythologyRepository
 
     public async Task<Mythology?> GetMythologyByGodIdAsync(int godId)
     {
-        var god = await _context.Gods.FirstOrDefaultAsync(g => g.Id == godId);
-        if (god is null)
-            return null;
-        return await _context.Mythologies.FirstOrDefaultAsync(m => m.Id == god.MythologyId);
+        return await (
+            from god in _context.Gods
+            where god.Id == godId
+            join mythology in _context.Mythologies on god.MythologyId equals mythology.Id
+            select mythology
+        ).FirstOrDefaultAsync();
     }
 }
