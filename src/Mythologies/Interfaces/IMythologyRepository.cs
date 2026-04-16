@@ -7,6 +7,6 @@ public interface IMythologyRepository
 {
     public Task<IList<Mythology>> GetAllMythologiesAsync();
     public Task<Mythology?> GetMythologyByIdAsync(int id);
-    public Task<Mythology?> GetMythologyByGodIdAsync(int godId);
     public Task<bool> DeleteMythologyByIdAsync(int id);
+    public Task<IList<Mythology>> GetMythologiesByGodNameAsync(string godName);
 }
