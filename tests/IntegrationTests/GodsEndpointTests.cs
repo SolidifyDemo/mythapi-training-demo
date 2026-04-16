@@ -1,5 +1,9 @@
 using System.Net.Http.Json;
+using Microsoft.Extensions.DependencyInjection;
 using MythApi.Common.Database.Models;
+using MythApi.Gods.Interfaces;
+using MythApi.Gods.Models;
+using MythApi.Mythologies.Interfaces;
 
 namespace IntegrationTests;
 
@@ -70,5 +74,54 @@ public class GodsEndpointTests
         Assert.That(successfulRequests, Is.LessThanOrEqualTo(100), "Should not exceed rate limit");
         // Assert.That(rateLimitedRequests, Is.GreaterThan(0), "Some requests should be rate limited");
         Assert.That(successfulRequests + rateLimitedRequests, Is.EqualTo(numberOfRequests), "All requests should be either successful or rate limited");
+    }
+
+    [Test]
+    public async Task GetAllGods_WhenRepositoryThrows_ShouldReturnInternalServerError()
+    {
+        using var factory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.AddScoped<IGodRepository, ThrowingGodRepository>();
+            });
+        });
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/api/v1/gods");
+
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.InternalServerError));
+    }
+
+    [Test]
+    public async Task GetAllMythologies_WhenRepositoryThrows_ShouldReturnInternalServerError()
+    {
+        using var factory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.AddScoped<IMythologyRepository, ThrowingMythologyRepository>();
+            });
+        });
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/api/v1/mythologies");
+
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.InternalServerError));
+    }
+
+    private class ThrowingGodRepository : IGodRepository
+    {
+        public Task<List<God>> AddOrUpdateGods(List<GodInput> gods) => throw new InvalidOperationException("Injected failure");
+        public Task DeleteAllGodsAsync() => throw new InvalidOperationException("Injected failure");
+        public Task DeleteGodByIdAsync(GodParameter parameter) => throw new InvalidOperationException("Injected failure");
+        public Task<IList<God>> GetAllGodsAsync() => throw new InvalidOperationException("Injected failure");
+        public Task<God> GetGodAsync(GodParameter parameter) => throw new InvalidOperationException("Injected failure");
+        public Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter) => throw new InvalidOperationException("Injected failure");
+    }
+
+    private class ThrowingMythologyRepository : IMythologyRepository
+    {
+        public Task<IList<MythApi.Common.Database.Models.Mythology>> GetAllMythologiesAsync() => throw new InvalidOperationException("Injected failure");
     }
 }
