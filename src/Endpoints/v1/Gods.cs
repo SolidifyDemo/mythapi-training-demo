@@ -59,8 +59,6 @@ public static class Gods {
         }
     }
 
-    public static Task<IResult> GetAlllGods(IGodRepository repository, ILoggerFactory loggerFactory) => GetAllGods(repository, loggerFactory);
-
     public static async Task<IResult> GetGodById(int id, IGodRepository repository, ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger("Gods");

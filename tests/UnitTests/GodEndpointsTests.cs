@@ -18,16 +18,15 @@ namespace UnitTests
     public class GodEndpointsTests
     {
         private IGodRepository _repository;
-        private ILogger _logger;
+        private TestLogger _logger;
         private ILoggerFactory _loggerFactory;
 
         [SetUp]
         public void Setup()
         {
             _repository = Substitute.For<IGodRepository>();
-            _logger = Substitute.For<ILogger>();
-            _loggerFactory = Substitute.For<ILoggerFactory>();
-            _loggerFactory.CreateLogger(Arg.Any<string>()).Returns(_logger);
+            _logger = new TestLogger();
+            _loggerFactory = new TestLoggerFactory(_logger);
         }
 
         [Test]
@@ -208,22 +207,48 @@ namespace UnitTests
 
         private bool HasLog(LogLevel level, string messageFragment)
         {
-            return _logger.ReceivedCalls().Any(call =>
+            return _logger.LogEntries.Any(entry =>
+                entry.Level == level &&
+                entry.Message.Contains(messageFragment, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private sealed class TestLoggerFactory(TestLogger logger) : ILoggerFactory
+        {
+            public void AddProvider(ILoggerProvider provider)
             {
-                if (!string.Equals(call.GetMethodInfo().Name, nameof(ILogger.Log), StringComparison.Ordinal))
-                {
-                    return false;
-                }
+            }
 
-                var arguments = call.GetArguments();
-                if (arguments.Length < 3 || arguments[0] is not LogLevel loggedLevel || loggedLevel != level)
-                {
-                    return false;
-                }
+            public ILogger CreateLogger(string categoryName) => logger;
 
-                var renderedMessage = arguments[2]?.ToString();
-                return renderedMessage?.Contains(messageFragment, StringComparison.OrdinalIgnoreCase) == true;
-            });
+            public void Dispose()
+            {
+            }
+        }
+
+        private sealed class TestLogger : ILogger
+        {
+            public IList<LogEntry> LogEntries { get; } = new List<LogEntry>();
+
+            public IDisposable BeginScope<TState>(TState state) where TState : notnull => NullScope.Instance;
+
+            public bool IsEnabled(LogLevel logLevel) => true;
+
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+                Func<TState, Exception?, string> formatter)
+            {
+                LogEntries.Add(new LogEntry(logLevel, formatter(state, exception)));
+            }
+        }
+
+        private sealed record LogEntry(LogLevel Level, string Message);
+
+        private sealed class NullScope : IDisposable
+        {
+            public static readonly NullScope Instance = new();
+
+            public void Dispose()
+            {
+            }
         }
     }
 }
