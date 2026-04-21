@@ -1,5 +1,13 @@
 using System.Net.Http.Json;
+using System.Net;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.Logging;
 using MythApi.Common.Database.Models;
+using MythApi.Endpoints.v1;
+using MythApi.Gods.Interfaces;
+using MythApi.Gods.Models;
 
 namespace IntegrationTests;
 
@@ -73,23 +81,122 @@ public class GodsEndpointTests
     }
 
     [Test]
-    public async Task AddOrUpdateGods_ShouldReturnSuccessStatusCode()
+    public async Task AddOrUpdateGods_ShouldWriteAuditLogs()
     {
-        var payload = new[]
+        var repository = new StubGodRepository();
+        var loggerFactory = new InMemoryLoggerFactory();
+        var context = CreateHttpContext();
+        var payload = new List<GodInput>
         {
-            new { Name = "Apollo", Description = "God of the sun", MythologyId = 1 }
+            new() { Id = 42, Name = "Apollo", Description = "God of the sun", MythologyId = 1 }
         };
 
-        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", payload);
+        var result = await Gods.AddOrUpdateGods(payload, repository, loggerFactory, context);
 
-        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(result.Count, Is.EqualTo(1));
+        Assert.That(loggerFactory.Entries.Any(e => e.Level == LogLevel.Information && e.Message.Contains("AddOrUpdateGods invoked")), Is.True);
+        Assert.That(loggerFactory.Entries.Any(e => e.Level == LogLevel.Information && e.Message.Contains("AddOrUpdateGods completed")), Is.True);
+        Assert.That(loggerFactory.Entries.Any(e => Equals(e.Properties.GetValueOrDefault("Count"), 1)), Is.True);
+        Assert.That(loggerFactory.Entries.Any(e => Equals(e.Properties.GetValueOrDefault("User"), "audit-user")), Is.True);
     }
 
     [Test]
-    public async Task DeleteAllGods_ShouldReturnNoContent()
+    public async Task DeleteAllGods_ShouldWriteAuditLogs()
     {
-        var response = await _httpClient.DeleteAsync("/api/v1/gods");
+        var repository = new StubGodRepository();
+        var loggerFactory = new InMemoryLoggerFactory();
+        var context = CreateHttpContext();
 
-        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NoContent));
+        var result = await Gods.DeleteAllGods(repository, loggerFactory, context);
+
+        Assert.That(result, Is.InstanceOf<NoContent>());
+        Assert.That(repository.DeleteAllCalls, Is.EqualTo(1));
+        Assert.That(loggerFactory.Entries.Any(e => e.Level == LogLevel.Warning && e.Message.Contains("DeleteAllGods invoked")), Is.True);
+        Assert.That(loggerFactory.Entries.Any(e => e.Level == LogLevel.Warning && e.Message.Contains("DeleteAllGods completed")), Is.True);
+        Assert.That(loggerFactory.Entries.Any(e => Equals(e.Properties.GetValueOrDefault("User"), "audit-user")), Is.True);
+    }
+
+    private static DefaultHttpContext CreateHttpContext()
+    {
+        var context = new DefaultHttpContext();
+        context.Connection.RemoteIpAddress = IPAddress.Parse("127.0.0.1");
+        context.User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, "audit-user")], "test"));
+        return context;
+    }
+
+    private sealed class StubGodRepository : IGodRepository
+    {
+        public int DeleteAllCalls { get; private set; }
+
+        public Task<List<God>> AddOrUpdateGods(List<GodInput> gods)
+        {
+            var mapped = gods.Select(god => new God
+            {
+                Id = god.Id ?? 0,
+                Name = god.Name,
+                Description = god.Description,
+                MythologyId = god.MythologyId
+            }).ToList();
+            return Task.FromResult(mapped);
+        }
+
+        public Task DeleteAllGodsAsync()
+        {
+            DeleteAllCalls++;
+            return Task.CompletedTask;
+        }
+
+        public Task<IList<God>> GetAllGodsAsync() => Task.FromResult<IList<God>>([]);
+
+        public Task<God> GetGodAsync(GodParameter parameter) => Task.FromResult(new God());
+
+        public Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter) => Task.FromResult(new List<God>());
+    }
+
+    private sealed class InMemoryLoggerFactory : ILoggerFactory
+    {
+        public List<LogEntry> Entries { get; } = new();
+
+        public void AddProvider(ILoggerProvider provider)
+        {
+        }
+
+        public ILogger CreateLogger(string categoryName) => new InMemoryLogger(Entries);
+
+        public void Dispose()
+        {
+        }
+    }
+
+    private sealed class InMemoryLogger(List<LogEntry> entries) : ILogger
+    {
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull => NullScope.Instance;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        {
+            var properties = new Dictionary<string, object?>();
+            if (state is IEnumerable<KeyValuePair<string, object?>> structuredState)
+            {
+                foreach (var item in structuredState)
+                {
+                    properties[item.Key] = item.Value;
+                }
+            }
+
+            entries.Add(new LogEntry(logLevel, formatter(state, exception), properties));
+        }
+    }
+
+    private sealed record LogEntry(LogLevel Level, string Message, Dictionary<string, object?> Properties);
+
+    private sealed class NullScope : IDisposable
+    {
+        public static readonly NullScope Instance = new();
+
+        public void Dispose()
+        {
+        }
     }
 }

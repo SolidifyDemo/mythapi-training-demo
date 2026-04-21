@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using MythApi.Gods.Interfaces;
 using MythApi.Common.Database.Models;
 using MythApi.Gods.Models;
-using System.Linq;
 
 namespace MythApi.Endpoints.v1;
 public static class Gods {
