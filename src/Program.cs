@@ -5,10 +5,14 @@ using MythApi.Common.Database;
 using MythApi.Endpoints.v1;
 using MythApi.Mythologies.DBRepositories;
 using MythApi.Mythologies.Interfaces;
+using MythApi.Common.Security;
 using Azure.Identity;
 using Serilog;
 using System.Runtime.CompilerServices;
 using Microsoft.Data.Sqlite;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Authentication;
 
 [assembly: InternalsVisibleTo("IntegrationTests")]
 
@@ -90,6 +94,31 @@ try
         .AddScoped<IGodRepository, GodRepository>()
         .AddScoped<IMythologyRepository, MythologyRepository>();
 
+    builder.Services.AddAuthentication("admin-token")
+        .AddScheme<AuthenticationSchemeOptions, AdminTokenAuthenticationHandler>("admin-token", _ => { });
+
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy("admin", policy =>
+        {
+            policy.AddAuthenticationSchemes("admin-token");
+            policy.RequireAuthenticatedUser();
+            policy.RequireRole("admin");
+        });
+    });
+
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        options.AddFixedWindowLimiter("api", limiterOptions =>
+        {
+            limiterOptions.PermitLimit = 100;
+            limiterOptions.Window = TimeSpan.FromMinutes(1);
+            limiterOptions.QueueLimit = 0;
+            limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        });
+    });
+
     var app = builder.Build();
 
     // Create/migrate database and initialize with default mythologies if needed
@@ -110,10 +139,14 @@ try
         initializer.InitializeDatabase();
     }
 
-    app.RegisterGodEndpoints();
-    app.RegisterMythologiesEndpoints();
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseRateLimiter();
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.RegisterGodEndpoints();
+    app.RegisterMythologiesEndpoints();
 
     
 

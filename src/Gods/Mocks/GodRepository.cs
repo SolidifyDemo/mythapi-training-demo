@@ -35,9 +35,14 @@ public class GodRepository : IGodRepository
         return Task.FromResult(this.gods);
     }
 
-    public Task<IList<God>> GetAllGodsAsync()
+    public Task<IList<God>> GetAllGodsAsync(int page = 1, int pageSize = 50)
     {
-        return Task.FromResult(gods as IList<God>);
+        var result = gods
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return Task.FromResult(result as IList<God>);
     }
 
     public Task<God> GetGodAsync(GodParameter parameter)
@@ -48,5 +53,11 @@ public class GodRepository : IGodRepository
     public Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter)
     {
         return Task.FromResult(gods.Where(god => god.Name.Contains(parameter.Name)).ToList());
+    }
+
+    public Task DeleteAllGodsAsync()
+    {
+        gods.Clear();
+        return Task.CompletedTask;
     }
 }

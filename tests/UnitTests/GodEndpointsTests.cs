@@ -33,7 +33,7 @@ namespace UnitTests
             };
             _repository.GetAllGodsAsync().Returns(gods);
 
-            var result = await MythApi.Endpoints.v1.Gods.GetAlllGods(_repository);
+            var result = await MythApi.Endpoints.v1.Gods.GetAllGods(_repository);
 
             Assert.That(result.Count, Is.EqualTo(2));
         }

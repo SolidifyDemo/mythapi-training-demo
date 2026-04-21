@@ -18,6 +18,7 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
         // Pass the --sqlite-database argument to the application
         // Not working. How pass just a flag and not an argument?
         builder.UseSetting("Args:0", "--sqlite-database");
+        builder.UseSetting("Security:AdminDeleteToken", "integration-admin-token");
 
         builder.ConfigureServices(services =>
         {
