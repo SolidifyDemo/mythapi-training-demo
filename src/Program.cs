@@ -5,6 +5,8 @@ using MythApi.Common.Database;
 using MythApi.Endpoints.v1;
 using MythApi.Mythologies.DBRepositories;
 using MythApi.Mythologies.Interfaces;
+using MythApi.Regions.DBRepositories;
+using MythApi.Regions.Interfaces;
 using Azure.Identity;
 using Serilog;
 using System.Runtime.CompilerServices;
@@ -88,7 +90,8 @@ try
 
     builder.Services
         .AddScoped<IGodRepository, GodRepository>()
-        .AddScoped<IMythologyRepository, MythologyRepository>();
+        .AddScoped<IMythologyRepository, MythologyRepository>()
+        .AddScoped<IRegionRepository, RegionRepository>();
 
     var app = builder.Build();
 
@@ -112,6 +115,7 @@ try
 
     app.RegisterGodEndpoints();
     app.RegisterMythologiesEndpoints();
+    app.RegisterRegionEndpoints();
     app.UseSwagger();
     app.UseSwaggerUI();
 

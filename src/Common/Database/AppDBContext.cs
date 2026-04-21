@@ -11,24 +11,33 @@ public class AppDbContext : DbContext {
     public DbSet<God> Gods { get; set; } = null!;
     public DbSet<Mythology> Mythologies { get; set; } = null!;
     public DbSet<Alias> Aliases { get; set; } = null!;
+    public DbSet<Region> Regions { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         // Map entities to tables
         modelBuilder.Entity<Mythology>().ToTable("Mythology");
         modelBuilder.Entity<God>().ToTable("God");
         modelBuilder.Entity<Alias>().ToTable("Alias");
-        
+        modelBuilder.Entity<Region>().ToTable("Region");
+
         modelBuilder.Entity<God>()
             .HasMany(e => e.Aliases)
             .WithOne()
             .HasForeignKey(e => e.GodId)
             .IsRequired()
             ;
-        
+
         modelBuilder.Entity<Mythology>()
             .HasMany(e => e.Gods)
             .WithOne()
             .HasForeignKey(e => e.MythologyId)
+            .IsRequired()
+            ;
+
+        modelBuilder.Entity<Region>()
+            .HasMany(e => e.Mythologies)
+            .WithOne()
+            .HasForeignKey(e => e.RegionId)
             .IsRequired()
             ;
 
