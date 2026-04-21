@@ -74,7 +74,7 @@ public class GodsEndpointTests
     }
 
     [Test]
-    public async Task SearchGodsByName_InvalidCharacters_ShouldReturnNotFound()
+    public async Task SearchGodsByName_InvalidCharacters_ShouldReturnNotFoundDueToRouteConstraint()
     {
         var response = await _httpClient.GetAsync("/api/v1/gods/search/Zeus%27--");
 
@@ -90,6 +90,24 @@ public class GodsEndpointTests
             {
                 Name = new string('Z', 201),
                 Description = "Description",
+                MythologyId = 1
+            }
+        };
+
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", input);
+
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task AddOrUpdateGods_InvalidDescriptionLength_ShouldReturnBadRequest()
+    {
+        var input = new List<GodInput>
+        {
+            new()
+            {
+                Name = "Zeus",
+                Description = new string('D', 2001),
                 MythologyId = 1
             }
         };
