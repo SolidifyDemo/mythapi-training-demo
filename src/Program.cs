@@ -34,6 +34,7 @@ try
     var sqliteDatabase = true; // Default to demo
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
+    builder.Services.AddProblemDetails();
 
     
 
@@ -91,6 +92,7 @@ try
         .AddScoped<IMythologyRepository, MythologyRepository>();
 
     var app = builder.Build();
+    app.UseExceptionHandler();
 
     // Create/migrate database and initialize with default mythologies if needed
     if (inMemoryDatabase || sqliteDatabase || builder.Environment.IsDevelopment())

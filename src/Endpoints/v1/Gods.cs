@@ -14,9 +14,38 @@ public static class Gods {
         gods.MapGet("{id}", (int id, IGodRepository repository) => repository.GetGodAsync(new GodParameter(id)));
         gods.MapGet("search/{name}", (string name, IGodRepository repository, [FromQuery] bool includeAliases = false) => repository.GetGodByNameAsync(new GodByNameParameter(name, includeAliases)));
         gods.MapPost("", AddOrUpdateGods);
+        gods.MapDelete("", DeleteAllGods);
     }
 
-    public static Task<List<God>> AddOrUpdateGods(List<GodInput> gods, IGodRepository repository) => repository.AddOrUpdateGods(gods);
+    public static async Task<IResult> AddOrUpdateGods(List<GodInput> gods, IGodRepository repository, ILoggerFactory loggerFactory)
+    {
+        var logger = loggerFactory.CreateLogger(nameof(Gods));
+        try
+        {
+            var result = await repository.AddOrUpdateGods(gods);
+            return Results.Ok(result);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to add or update gods");
+            return Results.Problem("An error occurred while saving gods.", statusCode: StatusCodes.Status500InternalServerError);
+        }
+    }
 
     public static Task<IList<God>> GetAlllGods(IGodRepository repository) => repository.GetAllGodsAsync();
+
+    public static async Task<IResult> DeleteAllGods(IGodRepository repository, ILoggerFactory loggerFactory)
+    {
+        var logger = loggerFactory.CreateLogger(nameof(Gods));
+        try
+        {
+            await repository.DeleteAllGodsAsync();
+            return Results.NoContent();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to delete all gods");
+            return Results.Problem("An error occurred while deleting gods.", statusCode: StatusCodes.Status500InternalServerError);
+        }
+    }
 }
