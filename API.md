@@ -140,6 +140,57 @@ Creates new gods or updates existing ones. If a god object includes an `id` that
 
 ---
 
+### Delete God by ID
+
+Deletes a single god identified by its unique ID.
+
+- **URL:** `/api/v1/gods/{id}`
+- **Method:** `DELETE`
+- **Path Parameters:**
+
+| Parameter | Type  | Required | Description                     |
+|-----------|-------|----------|---------------------------------|
+| `id`      | `int` | Yes      | The unique ID of the god to delete |
+
+#### Response
+
+- **Status:** `204 No Content` — The god was successfully deleted.
+- **Status:** `404 Not Found` — No god with the specified ID exists.
+
+**Example — success:**
+```
+DELETE /api/v1/gods/3
+→ 204 No Content
+```
+
+**Example — not found:**
+```
+DELETE /api/v1/gods/999
+→ 404 Not Found
+```
+
+---
+
+### Delete All Gods
+
+Removes all god records from the database. This operation is irreversible and restricted to administrators.
+
+- **URL:** `/api/v1/gods`
+- **Method:** `DELETE`
+- **Headers:** `Authorization: Bearer <admin-token>` (required)
+- **Parameters:**
+  - `confirm=true` (required) — Explicit confirmation that all god records should be permanently deleted.
+
+#### Response
+
+- **Status:** `204 No Content` — All gods were successfully deleted.
+- **Status:** `400 Bad Request` — The required confirmation parameter was not provided.
+- **Status:** `401 Unauthorized` — Authentication credentials were missing or invalid.
+- **Status:** `403 Forbidden` — The authenticated user is not permitted to delete all gods.
+- **Status:** `500 Internal Server Error` — An unexpected error occurred.
+
+---
+
 ## Models
 
 ### God

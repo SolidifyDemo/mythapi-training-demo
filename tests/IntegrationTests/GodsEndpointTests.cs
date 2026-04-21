@@ -46,6 +46,16 @@ public class GodsEndpointTests
     }
 
     [Test]
+    public async Task DeleteAllGods_ShouldReturnNoContent()
+    {
+        // Act
+        var response = await _httpClient.DeleteAsync("/api/v1/gods");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NoContent));
+    }
+
+    [Test]
     public async Task GetAllGods_ConcurrentRequests_ShouldRespectRateLim()
     {
         // Arrange

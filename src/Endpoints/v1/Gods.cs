@@ -17,6 +17,8 @@ public static class Gods {
     /// <item><description><b>GET</b> /api/v1/gods/{id} - Retrieves a specific god by ID</description></item>
     /// <item><description><b>GET</b> /api/v1/gods/search/{name}?includeAliases=bool - Searches for gods by name, optionally including aliases</description></item>
     /// <item><description><b>POST</b> /api/v1/gods - Adds or updates gods</description></item>
+    /// <item><description><b>DELETE</b> /api/v1/gods - Deletes all gods</description></item>
+    /// <item><description><b>DELETE</b> /api/v1/gods/{id} - Deletes a specific god by ID</description></item>
     /// </list>
     /// <para>
     /// Each endpoint is compatible with Swagger/OpenAPI and will be included in the generated API documentation.
@@ -32,6 +34,7 @@ public static class Gods {
         gods.MapGet("search/{name}", (string name, IGodRepository repository, [FromQuery] bool includeAliases = false) => repository.GetGodByNameAsync(new GodByNameParameter(name, includeAliases)));
         gods.MapPost("", AddOrUpdateGods);
         gods.MapDelete("", DeleteAllGods);
+        gods.MapDelete("{id}", DeleteGodById);
     }
 
     /// <summary>
@@ -81,6 +84,28 @@ public static class Gods {
     {
         await repository.DeleteAllGodsAsync();
         return Results.NoContent();
+    }
+
+    /// <summary>
+    /// Deletes a single god by its unique identifier.
+    /// </summary>
+    /// <remarks>
+    /// <b>HTTP DELETE</b> /api/v1/gods/{id}
+    ///
+    /// Removes the god with the specified ID from the database. If no god with the given ID exists, a 404 Not Found response is returned.
+    /// </remarks>
+    /// <param name="id">The unique identifier of the god to delete.</param>
+    /// <param name="repository">The repository instance used to perform the deletion.</param>
+    /// <returns>
+    /// A <see cref="IResult"/> indicating the outcome of the operation.
+    /// Returns <b>204 No Content</b> on success, or <b>404 Not Found</b> if no god with the given <paramref name="id"/> exists.
+    /// </returns>
+    /// <response code="204">The god was successfully deleted. No content is returned.</response>
+    /// <response code="404">No god with the specified ID was found.</response>
+    public static async Task<IResult> DeleteGodById(int id, IGodRepository repository)
+    {
+        var deleted = await repository.DeleteGodByIdAsync(id);
+        return deleted ? Results.NoContent() : Results.NotFound();
     }
 
     

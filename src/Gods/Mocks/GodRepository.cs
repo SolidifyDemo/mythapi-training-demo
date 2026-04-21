@@ -55,4 +55,16 @@ public class GodRepository : IGodRepository
         gods.Clear();
         return Task.CompletedTask;
     }
+
+    public Task<bool> DeleteGodByIdAsync(int id)
+    {
+        var god = gods.FirstOrDefault(g => g.Id == id);
+        if (god is null)
+        {
+            return Task.FromResult(false);
+        }
+
+        gods.Remove(god);
+        return Task.FromResult(true);
+    }
 }

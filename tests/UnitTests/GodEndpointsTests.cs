@@ -59,5 +59,31 @@ namespace UnitTests
             Assert.That(result.Count, Is.EqualTo(1));
             Assert.That(result.First().Name, Is.EqualTo("Zeus"));
         }
+
+        [Test]
+        public async Task DeleteAllGods_WhenCalled_ShouldReturnNoContent()
+        {
+            // Arrange
+            _mockRepository.DeleteAllGodsAsync().Returns(Task.CompletedTask);
+
+            // Act
+            var result = await Gods.DeleteAllGods(_mockRepository);
+
+            // Assert
+            Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Http.HttpResults.NoContent>());
+        }
+
+        [Test]
+        public async Task DeleteAllGods_WhenCalled_ShouldCallDeleteAllGodsAsync()
+        {
+            // Arrange
+            _mockRepository.DeleteAllGodsAsync().Returns(Task.CompletedTask);
+
+            // Act
+            await Gods.DeleteAllGods(_mockRepository);
+
+            // Assert
+            await _mockRepository.Received(1).DeleteAllGodsAsync();
+        }
     }
 }

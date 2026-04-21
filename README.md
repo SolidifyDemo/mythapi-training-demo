@@ -493,3 +493,25 @@ app.Run();
 - Improve Bicep scripts
 - Set up with kubernetes/image repository etc
 - Add API Authentication & Authorization
+
+```mermaid
+erDiagram
+    Mythology {
+        int Id PK
+        string Name
+    }
+    God {
+        int Id PK
+        string Name
+        string Description
+        int MythologyId FK
+    }
+    Alias {
+        int Id PK
+        int GodId FK
+        string Name
+    }
+
+    Mythology ||--o{ God : "has"
+    God ||--o{ Alias : "has"
+```

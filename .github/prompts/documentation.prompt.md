@@ -4,7 +4,7 @@ description: This prompt is used to generate documentation for a class in a code
 agent: Doc Writer
 model: GPT-4.1 (copilot)
 argument-hint: Provide the reference to the class you want to document
-tools: [read/readFile, edit/editFiles, vscode/askQuestions]
+tools: [vscode/askQuestions, read/readFile, edit/editFiles]
 ---
 
 Add documentation to provided {given selection} and ensure that:

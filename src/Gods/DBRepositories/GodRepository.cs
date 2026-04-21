@@ -70,4 +70,17 @@ public class GodRepository : IGodRepository
         _context.Gods.RemoveRange(_context.Gods);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<bool> DeleteGodByIdAsync(int id)
+    {
+        var god = await _context.Gods.FirstOrDefaultAsync(x => x.Id == id);
+        if (god is null)
+        {
+            return false;
+        }
+
+        _context.Gods.Remove(god);
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }
