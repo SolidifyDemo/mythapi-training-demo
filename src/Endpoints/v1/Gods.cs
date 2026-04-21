@@ -34,6 +34,7 @@ public static class Gods {
 
     public static Task<IList<God>> GetAllGods(IGodRepository repository) => repository.GetAllGodsAsync();
 
+    [Obsolete("Use GetAllGods instead.")]
     public static Task<IList<God>> GetAlllGods(IGodRepository repository) => GetAllGods(repository);
 
     public static async Task<IResult> DeleteAllGods(IGodRepository repository, ILoggerFactory loggerFactory)
