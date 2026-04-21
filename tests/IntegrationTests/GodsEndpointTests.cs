@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Mvc;
 using MythApi.Common.Database.Models;
 using MythApi.Gods.Models;
 
@@ -97,6 +98,10 @@ public class GodsEndpointTests
         var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", input);
 
         Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem!.Errors.ContainsKey("gods[0].Name"), Is.True);
+        Assert.That(problem.Errors["gods[0].Name"][0], Does.Contain("maximum length of '200'"));
     }
 
     [Test]
@@ -115,5 +120,9 @@ public class GodsEndpointTests
         var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", input);
 
         Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem!.Errors.ContainsKey("gods[0].Description"), Is.True);
+        Assert.That(problem.Errors["gods[0].Description"][0], Does.Contain("maximum length of '2000'"));
     }
 }
