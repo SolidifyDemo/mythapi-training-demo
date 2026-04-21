@@ -35,6 +35,12 @@ public class GodRepository : IGodRepository
         return Task.FromResult(this.gods);
     }
 
+    public Task DeleteAllGodsAsync()
+    {
+        gods.Clear();
+        return Task.CompletedTask;
+    }
+
     public Task<IList<God>> GetAllGodsAsync()
     {
         return Task.FromResult(gods as IList<God>);
