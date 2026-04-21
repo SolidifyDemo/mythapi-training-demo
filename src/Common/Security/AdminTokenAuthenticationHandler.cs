@@ -18,7 +18,12 @@ public class AdminTokenAuthenticationHandler : AuthenticationHandler<Authenticat
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var configuredToken = Context.RequestServices
-            .GetRequiredService<IConfiguration>()["Security:AdminDeleteToken"] ?? "mythapi-admin-token";
+            .GetRequiredService<IConfiguration>()["Security:AdminDeleteToken"];
+
+        if (string.IsNullOrWhiteSpace(configuredToken))
+        {
+            return Task.FromResult(AuthenticateResult.NoResult());
+        }
 
         if (!Request.Headers.TryGetValue("X-Admin-Token", out var providedToken))
         {

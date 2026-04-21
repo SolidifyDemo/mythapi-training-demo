@@ -70,7 +70,7 @@ public class GodsEndpointTests
     public async Task DeleteAllGods_WithAdminToken_ShouldDeleteAllRecords()
     {
         // Arrange
-        _httpClient.DefaultRequestHeaders.Add("X-Admin-Token", "mythapi-admin-token");
+        _httpClient.DefaultRequestHeaders.Add("X-Admin-Token", "integration-admin-token");
 
         // Act
         var deleteResponse = await _httpClient.DeleteAsync("/api/v1/gods");
@@ -82,7 +82,7 @@ public class GodsEndpointTests
     }
 
     [Test]
-    public async Task GetAllGods_ConcurrentRequests_ShouldRespectRateLim()
+    public async Task GetAllGods_ConcurrentRequests_ShouldRespectRateLimit()
     {
         // Arrange
         const int numberOfRequests = 100; // More than our rate limit of 100 per minute
