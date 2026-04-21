@@ -74,7 +74,7 @@ Searches for gods whose name matches the provided search term. Optionally includ
 
 | Parameter | Type     | Required | Description                  |
 |-----------|----------|----------|------------------------------|
-| `name`    | `string` | Yes      | The name or partial name to search for |
+| `name`    | `string` | Yes      | 1-200 chars; letters/numbers/underscore, spaces, and hyphens only |
 
 - **Query Parameters:**
 
@@ -129,8 +129,8 @@ Creates new gods or updates existing ones. If a god object includes an `id` that
 | Field         | Type   | Required | Description                                              |
 |---------------|--------|----------|----------------------------------------------------------|
 | `id`          | `int?` | No       | If provided and exists, the god is updated; otherwise created |
-| `name`        | `string` | Yes    | The name of the god                                      |
-| `description` | `string` | Yes    | A description of the god                                 |
+| `name`        | `string` | Yes    | Required, max 200 characters                              |
+| `description` | `string` | Yes    | Required, max 2000 characters                             |
 | `mythologyId` | `int`  | Yes      | The ID of the mythology the god belongs to               |
 
 #### Response
@@ -157,6 +157,6 @@ Creates new gods or updates existing ones. If a god object includes an `id` that
 | Field         | Type    | Description                                              |
 |---------------|---------|----------------------------------------------------------|
 | `id`          | `int?`  | Optional; if set and exists, the god is updated          |
-| `name`        | `string`| Name of the god                                         |
-| `description` | `string`| Description of the god                                  |
+| `name`        | `string`| Required, max 200 characters                             |
+| `description` | `string`| Required, max 2000 characters                            |
 | `mythologyId` | `int`   | ID of the associated mythology                           |

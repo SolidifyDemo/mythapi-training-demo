@@ -32,6 +32,7 @@ try
     // Parse command line arguments
     var inMemoryDatabase = args.Contains("--in-memory-database");
     var sqliteDatabase = true; // Default to demo
+    builder.Services.AddProblemDetails();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 

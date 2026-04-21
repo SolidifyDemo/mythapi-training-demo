@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using MythApi.Gods.Interfaces;
 using MythApi.Common.Database.Models;
 using MythApi.Gods.Models;
@@ -12,11 +13,41 @@ public static class Gods {
 
         gods.MapGet("", GetAlllGods);
         gods.MapGet("{id}", (int id, IGodRepository repository) => repository.GetGodAsync(new GodParameter(id)));
-        gods.MapGet("search/{name}", (string name, IGodRepository repository, [FromQuery] bool includeAliases = false) => repository.GetGodByNameAsync(new GodByNameParameter(name, includeAliases)));
+        gods.MapGet("search/{name:regex(^[\\w\\s\\-]{{1,200}}$)}", (string name, IGodRepository repository, [FromQuery] bool includeAliases = false) => repository.GetGodByNameAsync(new GodByNameParameter(name, includeAliases)));
         gods.MapPost("", AddOrUpdateGods);
     }
 
-    public static Task<List<God>> AddOrUpdateGods(List<GodInput> gods, IGodRepository repository) => repository.AddOrUpdateGods(gods);
+    public static async Task<IResult> AddOrUpdateGods(List<GodInput> gods, IGodRepository repository)
+    {
+        Dictionary<string, string[]>? errors = null;
+
+        for (var index = 0; index < gods.Count; index++)
+        {
+            var validationContext = new ValidationContext(gods[index]);
+            var validationResults = new List<ValidationResult>();
+            if (Validator.TryValidateObject(gods[index], validationContext, validationResults, validateAllProperties: true))
+            {
+                continue;
+            }
+
+            errors ??= new Dictionary<string, string[]>();
+            foreach (var result in validationResults)
+            {
+                foreach (var memberName in result.MemberNames.DefaultIfEmpty(nameof(GodInput)))
+                {
+                    errors[$"gods[{index}].{memberName}"] = new[] { result.ErrorMessage ?? "Validation failed." };
+                }
+            }
+        }
+
+        if (errors is not null)
+        {
+            return Results.ValidationProblem(errors);
+        }
+
+        var updatedGods = await repository.AddOrUpdateGods(gods);
+        return Results.Ok(updatedGods);
+    }
 
     public static Task<IList<God>> GetAlllGods(IGodRepository repository) => repository.GetAllGodsAsync();
 }
