@@ -32,7 +32,7 @@ Follow these conventions when generating or modifying tests in this project.
 
 ### Structure
 
-YOU MArrange-Act-Assert (AUST FOLLOW AA) with explicit comments:
+Follow Arrange-Act-Assert (AAA) with explicit comments:
 
 ```csharp
 [Test]
@@ -76,42 +76,7 @@ For each endpoint method, write tests covering:
 
 ## Integration Tests
 
-### Setup
-
-- Use `CustomWebApplicationFactory<Program>` to create the test server.
-- Create and dispose `HttpClient` and factory in `[SetUp]` / `[TearDown]`.
-- Target actual HTTP routes (e.g., `/api/v1/gods`).
-
-### Structure
-
-Follow the same AAA pattern with comments as unit tests.
-
-### Required Coverage per Endpoint
-
-1. **Status code** — verify the response returns the expected HTTP status code.
-2. **Response body** — deserialize and assert on the returned data shape and content.
-3. **Error responses** — test invalid requests return appropriate error codes (400, 404, 500).
-4. **Concurrent/rate-limiting** — where applicable, verify rate-limiting behavior.
-
-### HTTP Testing Patterns
-
-```csharp
-// GET
-var response = await _httpClient.GetAsync("/api/v1/gods");
-Assert.That(response.IsSuccessStatusCode, Is.True);
-
-// GET with deserialization
-var gods = await _httpClient.GetFromJsonAsync<List<God>>("/api/v1/gods");
-Assert.That(gods, Is.Not.Null);
-
-// POST
-var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", godInputs);
-Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-
-// DELETE
-var response = await _httpClient.DeleteAsync("/api/v1/gods");
-Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
-```
+For full integration test conventions, see [integration-tests.instructions.md](integration-tests.instructions.md), which applies to `**/tests/IntegrationTests/**/*.cs`.
 
 ## Domain Models Reference
 

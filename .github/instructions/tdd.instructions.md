@@ -14,14 +14,14 @@ Always follow the TDD workflow:
 - Refactor the code as needed, ensuring all tests remain green.
 - Repeat this cycle for each new feature or change.
 - All new code must be covered by tests written first.
-- Use NUnit and NSubstitute for all unit tests and mocking.
+- Use NUnit and Moq for all unit tests and mocking.
 - Use the arrange-act-assert pattern and only one assertion per test.
 - Ensure tests are isolated and do not depend on external state.
 - MUST always use this TDD process: tests first, then implementation, then refactor.
 
 ## 🧪 Test Instructions
 
-- Use only NSubstitute for mocking dependencies.
+- Use only Moq (`Mock<T>`) for mocking dependencies. Do not use NSubstitute.
 - Use **NUnit** for unit tests.
 - Write tests for:
   - Controllers

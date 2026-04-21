@@ -1,6 +1,9 @@
 ---
+name: General Coding Standards
+description: This file outlines the general coding standards for the project to ensure consistency and maintainability across the codebase.
 applyTo: "**"
 ---
+
 # Project general coding standards
 
 ## Naming Conventions

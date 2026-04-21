@@ -18,7 +18,7 @@ applyTo: '**Endpoints/**/*.cs'
 
 - Use Swagger for API documentation
 - Ensure all endpoints are documented with appropriate HTTP methods, parameters, and responses
-- Always update the `openapi.yaml` with the latest changes of the API.
+- Always update the `openapi.yaml` with the latest changes of the API, create it if it doesn't exist, and make sure it is placed in the root of the project
 - Always update the `API.md`  with the latest changes of the API and make sure that:
   - Each method uses the structure of [](./api-documentation-template.md) template for documentation
   - Explain arguments in detail
