@@ -19,7 +19,7 @@ public static class Gods {
 
     public static async Task<IResult> AddOrUpdateGods(List<GodInput> gods, IGodRepository repository)
     {
-        Dictionary<string, string[]>? errors = null;
+        Dictionary<string, List<string>>? errors = null;
 
         for (var index = 0; index < gods.Count; index++)
         {
@@ -30,19 +30,26 @@ public static class Gods {
                 continue;
             }
 
-            errors ??= new Dictionary<string, string[]>();
+            errors ??= new Dictionary<string, List<string>>();
             foreach (var result in validationResults)
             {
                 foreach (var memberName in result.MemberNames.DefaultIfEmpty(nameof(GodInput)))
                 {
-                    errors[$"gods[{index}].{memberName}"] = new[] { result.ErrorMessage ?? "Validation failed." };
+                    var key = $"gods[{index}].{memberName}";
+                    if (!errors.TryGetValue(key, out var memberErrors))
+                    {
+                        memberErrors = new List<string>();
+                        errors[key] = memberErrors;
+                    }
+
+                    memberErrors.Add(result.ErrorMessage ?? "Validation failed.");
                 }
             }
         }
 
         if (errors is not null)
         {
-            return Results.ValidationProblem(errors);
+            return Results.ValidationProblem(errors.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray()));
         }
 
         var updatedGods = await repository.AddOrUpdateGods(gods);
