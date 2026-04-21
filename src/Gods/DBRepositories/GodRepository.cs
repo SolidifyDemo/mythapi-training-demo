@@ -42,6 +42,11 @@ public class GodRepository : IGodRepository
         return await _context.Gods.ToListAsync();
     }
 
+    public async Task DeleteAllGodsAsync()
+    {
+        await _context.Gods.ExecuteDeleteAsync();
+    }
+
     public async Task<IList<God>> GetAllGodsAsync()
     {
         var gods = await _context.Gods.ToListAsync();

@@ -71,4 +71,25 @@ public class GodsEndpointTests
         // Assert.That(rateLimitedRequests, Is.GreaterThan(0), "Some requests should be rate limited");
         Assert.That(successfulRequests + rateLimitedRequests, Is.EqualTo(numberOfRequests), "All requests should be either successful or rate limited");
     }
+
+    [Test]
+    public async Task AddOrUpdateGods_ShouldReturnSuccessStatusCode()
+    {
+        var payload = new[]
+        {
+            new { Name = "Apollo", Description = "God of the sun", MythologyId = 1 }
+        };
+
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", payload);
+
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+    }
+
+    [Test]
+    public async Task DeleteAllGods_ShouldReturnNoContent()
+    {
+        var response = await _httpClient.DeleteAsync("/api/v1/gods");
+
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NoContent));
+    }
 }
