@@ -5,7 +5,8 @@ public static class Mythologies
 {
     public static void RegisterMythologiesEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var mythologies = endpoints.MapGroup("/api/v1/mythologies");
+        var mythologies = endpoints.MapGroup("/api/v1/mythologies")
+            .RequireRateLimiting("api");
 
         mythologies.MapGet("", GetAllMythologies);
     }

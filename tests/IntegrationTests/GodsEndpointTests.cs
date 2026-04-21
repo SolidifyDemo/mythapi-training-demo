@@ -46,6 +46,42 @@ public class GodsEndpointTests
     }
 
     [Test]
+    public async Task GetAllGods_ShouldSupportPagination()
+    {
+        // Act
+        var gods = await _httpClient.GetFromJsonAsync<List<God>>("/api/v1/gods?page=1&pageSize=5");
+
+        // Assert
+        Assert.That(gods, Is.Not.Null);
+        Assert.That(gods!.Count, Is.EqualTo(5));
+    }
+
+    [Test]
+    public async Task DeleteAllGods_WithoutAdminToken_ShouldReturnUnauthorized()
+    {
+        // Act
+        var response = await _httpClient.DeleteAsync("/api/v1/gods");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.Unauthorized));
+    }
+
+    [Test]
+    public async Task DeleteAllGods_WithAdminToken_ShouldDeleteAllRecords()
+    {
+        // Arrange
+        _httpClient.DefaultRequestHeaders.Add("X-Admin-Token", "mythapi-admin-token");
+
+        // Act
+        var deleteResponse = await _httpClient.DeleteAsync("/api/v1/gods");
+        var godsAfterDelete = await _httpClient.GetFromJsonAsync<List<God>>("/api/v1/gods");
+
+        // Assert
+        Assert.That(deleteResponse.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NoContent));
+        Assert.That(godsAfterDelete, Is.Empty);
+    }
+
+    [Test]
     public async Task GetAllGods_ConcurrentRequests_ShouldRespectRateLim()
     {
         // Arrange

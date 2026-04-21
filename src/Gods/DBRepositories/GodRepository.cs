@@ -42,14 +42,14 @@ public class GodRepository : IGodRepository
         return await _context.Gods.ToListAsync();
     }
 
-    public async Task<IList<God>> GetAllGodsAsync()
+    public async Task<IList<God>> GetAllGodsAsync(int page = 1, int pageSize = 50)
     {
-        var gods = await _context.Gods.ToListAsync();
-        foreach (var god in gods)
-        {
-            _context.Entry(god).Collection(x => x.Aliases).Load();
-        }
-        return gods;
+        return await _context.Gods
+            .Include(god => god.Aliases)
+            .OrderBy(god => god.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
     }
 
     public async Task<God> GetGodAsync(GodParameter parameter)
@@ -64,4 +64,6 @@ public class GodRepository : IGodRepository
 
         return Task.FromResult(result);
     }
+
+    public Task DeleteAllGodsAsync() => _context.Gods.ExecuteDeleteAsync();
 }
