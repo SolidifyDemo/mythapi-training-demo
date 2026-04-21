@@ -1,5 +1,7 @@
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Mvc;
 using MythApi.Common.Database.Models;
+using MythApi.Gods.Models;
 
 namespace IntegrationTests;
 
@@ -70,5 +72,57 @@ public class GodsEndpointTests
         Assert.That(successfulRequests, Is.LessThanOrEqualTo(100), "Should not exceed rate limit");
         // Assert.That(rateLimitedRequests, Is.GreaterThan(0), "Some requests should be rate limited");
         Assert.That(successfulRequests + rateLimitedRequests, Is.EqualTo(numberOfRequests), "All requests should be either successful or rate limited");
+    }
+
+    [Test]
+    public async Task SearchGodsByName_InvalidCharacters_ShouldReturnNotFoundDueToRouteConstraint()
+    {
+        var response = await _httpClient.GetAsync("/api/v1/gods/search/Zeus%27--");
+
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NotFound));
+    }
+
+    [Test]
+    public async Task AddOrUpdateGods_InvalidNameLength_ShouldReturnBadRequest()
+    {
+        var input = new List<GodInput>
+        {
+            new()
+            {
+                Name = new string('Z', 201),
+                Description = "Description",
+                MythologyId = 1
+            }
+        };
+
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", input);
+
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem!.Errors.ContainsKey("gods[0].Name"), Is.True);
+        Assert.That(problem.Errors["gods[0].Name"][0], Does.Contain("maximum length of '200'"));
+    }
+
+    [Test]
+    public async Task AddOrUpdateGods_InvalidDescriptionLength_ShouldReturnBadRequest()
+    {
+        var input = new List<GodInput>
+        {
+            new()
+            {
+                Name = "Zeus",
+                Description = new string('D', 2001),
+                MythologyId = 1
+            }
+        };
+
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", input);
+
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem!.Errors.ContainsKey("gods[0].Description"), Is.True);
+        Assert.That(problem.Errors["gods[0].Description"][0], Does.Contain("maximum length of '2000'"));
     }
 }
